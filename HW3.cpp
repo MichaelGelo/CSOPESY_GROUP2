@@ -273,6 +273,17 @@ void mainCommandLoop() {
     }
 }
 
+void printStatement(const string& statement, int coreID/*, screen_name???*/) {
+    time_t now = time(0);
+    tm localtm;
+    localtime_s(&localtm, &now);
+
+    ostringstream timeStream;
+    timeStream << put_time(&localtm, "(%m/%d/%Y %I:%M:%S %p)");
+
+    cout << timeStream.str() << " Core:" << coreID << " " << statement /*<< screen_name???*/ << endl;
+}
+
 int main() {
     menu();
     mainCommandLoop();
