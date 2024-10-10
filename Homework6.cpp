@@ -8,7 +8,13 @@
 #include <fstream>
 #include <string>
 #include "MarqueeConsole.h"
+#include "Process.h"
+#include <thread>
+#include <chrono>
+#include <mutex>
+
 using namespace std;
+
 
 struct Screen {
     string processName;
@@ -32,7 +38,7 @@ struct Screen {
 unordered_map<string, Screen> screens;
 string currentScreen = "";
 Screen mainMenuScreen;
-std::ofstream outputFile;
+ofstream outputFile;
 void color(int n);
 void menu();
 void enter();
@@ -99,30 +105,30 @@ void clear() {
     }
 }
 
-void printStatement(const std::string& statement, int coreID) {
+void printStatement(const string& statement, int coreID) {
     time_t now = time(0);
     tm localtm;
     localtime_s(&localtm, &now);
-    std::ostringstream timeStream;
-    timeStream << std::put_time(&localtm, "(%m/%d/%Y %I:%M:%S %p)");
-    std::string output = timeStream.str() + " Core:" + std::to_string(coreID) + " " + statement;
-    std::cout << output << std::endl;
+    ostringstream timeStream;
+    timeStream << put_time(&localtm, "(%m/%d/%Y %I:%M:%S %p)");
+    string output = timeStream.str() + " Core:" + to_string(coreID) + " " + statement;
+    cout << output << endl;
     if (outputFile.is_open()) {
-        outputFile << output << std::endl;
+        outputFile << output << endl;
     }
 }
 
-void exportTxt(const std::string& command) {
+void exportTxt(const string& command) {
     if (command == "start") {
         outputFile.open("output.txt");
         if (!outputFile.is_open()) {
-            std::cerr << "Unable to open output file" << std::endl;
+            cerr << "Unable to open output file" << std::endl;
         }
     }
     else if (command == "end") {
         if (outputFile.is_open()) {
             outputFile.close();
-            std::cout << "Content has been exported to output.txt" << std::endl;
+            cout << "Content has been exported to output.txt" << std::endl;
         }
     }
 }
@@ -364,6 +370,90 @@ void hiddenScreenCreate(const string& name) {
     }
 }
 
+
+///
+
+vector<int> cores;
+vector<Process> processes;
+vector<std::thread> threads;
+mutex mutexProcess;
+condition_variable cv;
+int currentTurn = 0;
+bool initialized = false;
+
+
+bool initializeCores(int numCores) { 
+    if (numCores > 0) {
+        cout << "Initializing OS... \n";
+        cores.resize(numCores, 0);
+        for (int i = 1; i <= numCores; i++) {
+            ostringstream oss;
+            oss << "Core" << i << " initialized and ready!";
+            printStatement(oss.str(), i);
+        }
+        cout << "All cores are initialized. \n\n";
+    }
+    else {
+        cout << "Invalid number of core/s initialized!\n";
+        return false;
+    }
+
+    return true;
+}
+
+void createProcesses() {
+    int coreIndex = 0; 
+
+    for (int i = 0; i < 10; ++i) {
+        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, 10);
+        cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex << endl;
+
+        coreIndex = (coreIndex + 1) % cores.size();
+    }
+}
+
+
+void executeProcesses(int coreIndex) {
+    for (auto& process : processes) {
+        if (process.getCore() == coreIndex) {
+            std::unique_lock<std::mutex> lock(mutexProcess);
+
+            cv.wait(lock, [&process] { return process.getPid() == currentTurn; });
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));  // ADJUST NYO NLNG
+
+            process.switchState(Process::FINISHED);
+            cout << "Core " << coreIndex << " finished executing process " << process.getPid() << endl;
+
+            currentTurn++;
+            cv.notify_all(); 
+        }
+    }
+}
+
+
+
+void monitorProcesses() {
+    while (true) {
+        bool allFinished = true;
+        {
+            std::lock_guard<std::mutex> lock(mutexProcess); 
+            for (const auto& process : processes) {
+                if (!process.hasFinished()) {
+                    allFinished = false;
+                    process.displayProcessInfo();
+                }
+            }
+        }
+        if (allFinished) {
+            std::cout << "All processes finished.\n";
+            break;
+        }
+        this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
+
+
 void readCommand(const string& command) {
     if (currentScreen.empty()) {
         mainMenuScreen.addOutput("Enter a command: " + command);
@@ -391,15 +481,46 @@ void readCommand(const string& command) {
         handleScreenCommands(command);
     }
     else if (command == "initialize") {
-        cout << "Initialize command recognized. Doing something.\n\n";
+        if (initializeCores(4)) {
+            createProcesses();
+            initialized = true; // Set the flag to true after successful initialization
+            cout << "Cores initialized and processes created.\n\n";
+        }
+        else {
+            cout << "Failed to initialize cores.\n\n";
+        }
     }
     else if (command == "scheduler-test") {
-        cout << "Scheduler test command recognized. Doing something.\n\n";
+        if (!initialized) {
+            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
+            return; // Exit the command handling if not initialized
+        }
+
+        currentTurn = 0; // Reset current turn before starting
+        for (int i = 0; i < cores.size(); i++) {
+            threads.emplace_back(executeProcesses, i);
+        }
+
+        for (auto& t : threads) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }
     }
     else if (command == "scheduler-stop") {
+        if (!initialized) {
+            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
+            return; 
+        }
+
         cout << "Scheduler stop command recognized. Doing something.\n\n";
     }
     else if (command == "report-util") {
+        if (!initialized) {
+            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
+            return; 
+        }
+
         cout << "Report util command recognized. Doing something.\n\n";
     }
     else if (command == "clear") {
