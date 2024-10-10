@@ -98,6 +98,31 @@ void clear() {
     }
 }
 
+void printStatement(const string& statement, int coreID/*, screen_name???*/) {
+    time_t now = time(0);
+    tm localtm;
+    localtime_s(&localtm, &now);
+
+    ostringstream timeStream;
+    timeStream << put_time(&localtm, "(%m/%d/%Y %I:%M:%S %p)");
+
+    cout << timeStream.str() << " Core:" << coreID << " " << statement /*<< screen_name???*/ << endl;
+}
+
+void exportTxt(const std::string& command) {
+    if (command == "start") {
+        outputFile.open("output.txt");
+        if (!outputFile.is_open()) {
+            std::cerr << "Unable to open output file" << std::endl;
+        }
+    } else if (command == "end") {
+        if (outputFile.is_open()) {
+            outputFile.close();
+            std::cout << "Content has been exported to output.txt" << std::endl;
+        }
+    }
+}
+
 void displayMainMenu() {
     cout << "\nAvailable commands:\n";
     cout << " - initialize\n";
