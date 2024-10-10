@@ -382,7 +382,7 @@ int currentTurn = 0;
 bool initialized = false;
 
 
-bool initializeCores(int numCores) { 
+bool initializeCores(int numCores) {
     if (numCores > 0) {
         cout << "Initializing OS... \n";
         cores.resize(numCores, 0);
@@ -402,10 +402,10 @@ bool initializeCores(int numCores) {
 }
 
 void createProcesses() {
-    int coreIndex = 0; 
+    int coreIndex = 0;
 
     for (int i = 0; i < 10; ++i) {
-        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, 10);
+        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, 100);
         cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex << endl;
 
         coreIndex = (coreIndex + 1) % cores.size();
@@ -419,16 +419,17 @@ void executeProcesses(int coreIndex) {
             std::unique_lock<std::mutex> lock(mutexProcess);
 
             cv.wait(lock, [&process] { return process.getPid() == currentTurn; });
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));  // ADJUST NYO NLNG
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            process.switchState(Process::FINISHED);
-            cout << "Core " << coreIndex << " finished executing process " << process.getPid() << endl;
+            process.switchState(Process::RUNNING);  // Switch to running before execution
+            process.executeCommand([]() { /* Command to be executed */ });
 
             currentTurn++;
-            cv.notify_all(); 
+            cv.notify_all();
         }
     }
 }
+
 
 
 
@@ -436,7 +437,7 @@ void monitorProcesses() {
     while (true) {
         bool allFinished = true;
         {
-            std::lock_guard<std::mutex> lock(mutexProcess); 
+            std::lock_guard<std::mutex> lock(mutexProcess);
             for (const auto& process : processes) {
                 if (!process.hasFinished()) {
                     allFinished = false;
@@ -510,7 +511,7 @@ void readCommand(const string& command) {
     else if (command == "scheduler-stop") {
         if (!initialized) {
             cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
-            return; 
+            return;
         }
 
         cout << "Scheduler stop command recognized. Doing something.\n\n";
@@ -518,7 +519,7 @@ void readCommand(const string& command) {
     else if (command == "report-util") {
         if (!initialized) {
             cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
-            return; 
+            return;
         }
 
         cout << "Report util command recognized. Doing something.\n\n";

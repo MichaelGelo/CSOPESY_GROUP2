@@ -1,5 +1,10 @@
 #include "Process.h"
 #include <iostream>
+#include <fstream>
+#include <ctime>
+#include <iomanip>
+#include <thread>
+#include <chrono>
 
 Process::Process(int pid, std::string screenName, int core, int maxLines)
     : pid(pid), screenName(screenName), core(core), maxLines(maxLines), curLines(0), state(READY), isFinished(false) {}
@@ -10,12 +15,6 @@ Process::ProcessState Process::getState() const {
 
 void Process::switchState(ProcessState newState) {
     state = newState;
-
-   // std::cout << "Process " << screenName << " is now in state: "
-   //     << (state == READY ? "READY" :
-   //         state == RUNNING ? "RUNNING" :
-   //         state == WAITING ? "WAITING" : "FINISHED")
-   //     << std::endl;
 }
 
 bool Process::hasFinished() const {
@@ -25,7 +24,9 @@ bool Process::hasFinished() const {
 void Process::executeCommand(std::function<void()> command) {
     if (state == RUNNING) {
         for (curLines = 0; curLines < maxLines; ++curLines) {
-            command(); 
+            command();
+            logPrintCommand("Hello world from " + screenName + "!");
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Sleep 
         }
         switchState(FINISHED);
         isFinished = true;
@@ -34,6 +35,20 @@ void Process::executeCommand(std::function<void()> command) {
     else {
         std::cout << "Cannot execute command. Process is not in RUNNING state." << std::endl;
     }
+}
+
+void Process::logPrintCommand(const std::string& message) {
+    std::ofstream logFile(screenName + ".txt", std::ios::app);
+
+    if (logFile.is_open()) {
+        auto t = std::time(nullptr);
+        std::tm localTime;
+        localtime_s(&localTime, &t); 
+
+        logFile << "(" << std::put_time(&localTime, "%m/%d/%Y %I:%M:%S%p") << ") "
+            << "Core:" << core << " \"" << message << "\"" << std::endl;
+    }
+    logFile.close();
 }
 
 void Process::displayProcessInfo() const {
