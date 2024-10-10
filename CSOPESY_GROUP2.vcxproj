@@ -130,6 +130,7 @@
     <ClInclude Include="MarqueeConsole.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Homework6.cpp" />
     <ClCompile Include="MarqueeConsole.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
