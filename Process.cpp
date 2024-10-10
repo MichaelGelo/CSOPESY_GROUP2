@@ -1,50 +1,59 @@
-class Process {
-private:
-    int pid;
-    String screenName;
-    int curLines;
-    int maxLines;
-    int core;
-public:
-    enum ProcessState {
-        READY,
-        RUNNING,
-        WAITING,
-        FINISHED
-    };
+#include "Process.h"
+#include <iostream>
 
-    Process(int pid, std::string screenName, int core;) : pid(pid), screenName(screenName), state(READY), isFinished(false) {}
+Process::Process(int pid, std::string screenName, int core, int maxLines)
+    : pid(pid), screenName(screenName), core(core), maxLines(maxLines), curLines(0), state(READY), isFinished(false) {}
 
-    ProcessState getState() const {
-        return state;
-    }
+Process::ProcessState Process::getState() const {
+    return state;
+}
 
-    void switchState(ProcessState newState) {
-        state = newState;
-        std::cout << "Process " << screenName << " is now in state: "
-            << (state == READY ? "READY" :
-                state == RUNNING ? "RUNNING" :
-                state == WAITING ? "WAITING" : "FINISHED")
-            << std::endl;
-    }
+void Process::switchState(ProcessState newState) {
+    state = newState;
 
-    bool hasFinished() const {
-        return isFinished;
-    }
+   // std::cout << "Process " << screenName << " is now in state: "
+   //     << (state == READY ? "READY" :
+   //         state == RUNNING ? "RUNNING" :
+   //         state == WAITING ? "WAITING" : "FINISHED")
+   //     << std::endl;
+}
 
-    void executeCommand(std::function<void()> command) {
-        if (state == RUNNING) {
-            for (curLines = 0; curLines < maxLines; ++curLines) {
-                 //tentative
-            }
-            
-            switchState(FINISHED);
-            isFinished = true;
+bool Process::hasFinished() const {
+    return isFinished;
+}
+
+void Process::executeCommand(std::function<void()> command) {
+    if (state == RUNNING) {
+        for (curLines = 0; curLines < maxLines; ++curLines) {
+            command(); 
         }
-        else {
-            std::cout << "Cannot execute command." << std::endl;
-        }
+        switchState(FINISHED);
+        isFinished = true;
+        std::cout << "Process " << screenName << " finished executing command." << std::endl;
     }
+    else {
+        std::cout << "Cannot execute command. Process is not in RUNNING state." << std::endl;
+    }
+}
 
-    return 0;
+void Process::displayProcessInfo() const {
+    std::cout << "Process ID: " << pid << "\n"
+        << "Screen Name: " << screenName << "\n"
+        << "Assigned Core: " << core << "\n"
+        << "Current State: " << (state == READY ? "READY" :
+            state == RUNNING ? "RUNNING" :
+            state == WAITING ? "WAITING" : "FINISHED")
+        << "\nFinished: " << (isFinished ? "Yes" : "No") << std::endl;
+}
+
+int Process::getPid() const {
+    return pid;
+}
+
+const std::string& Process::getScreenName() const {
+    return screenName;
+}
+
+int Process::getCore() const {
+    return core;
 }

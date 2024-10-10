@@ -23,19 +23,19 @@ public:
     };
 
 private:
-    ProcessState state;  
+    ProcessState state;
 
 public:
     Process(int pid, std::string screenName, int core, int maxLines);
 
-    ProcessState getState() const;
+    int getPid() const;               
+    const std::string& getScreenName() const; 
+    int getCore() const;             
+    ProcessState getState() const;   
+    bool hasFinished() const;        
 
     void switchState(ProcessState newState);
-
-    bool hasFinished() const;
-
     void executeCommand(std::function<void()> command);
-
     void displayProcessInfo() const;
 };
 
