@@ -427,17 +427,11 @@ void createProcesses(int minLines, int maxLines) {
 void executeProcesses(int coreIndex) {
     for (auto& process : processes) {
         if (process.getCore() == coreIndex) {
-            std::unique_lock<std::mutex> lock(mutexProcess);
-            cv.wait(lock, [&process] { return process.getPid() == currentTurn; });
-
+            std::cout << "Core " << coreIndex << " running process " << process.getPid() << std::endl;
             process.run();
-
-            currentTurn++;
-            cv.notify_all();
         }
     }
 }
-
 
 void monitorProcesses() {
     while (!stopMonitoring) {
@@ -455,7 +449,7 @@ void monitorProcesses() {
             std::cout << "All processes finished.\n";
             break;
         }
-        this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
