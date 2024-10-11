@@ -3,9 +3,9 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
-#include <thread> 
+#include <thread>
 #include <chrono>
-#include <fstream> 
+#include <fstream>
 
 Process::Process(int pid, std::string screenName, int core, int maxLines)
     : pid(pid), screenName(screenName), core(core), maxLines(maxLines), curLines(0), state(READY), isFinished(false) {}
@@ -24,14 +24,13 @@ bool Process::hasFinished() const {
 
 void Process::executeCommand(std::function<void()> command) {
     if (state == RUNNING) {
-        for (curLines = 0; curLines < maxLines; ++curLines) {
+        // Print 100 lines regardless of maxLines
+        for (int i = 0; i < 100; ++i) {
             command();
-            logPrintCommand("Hello world from " + screenName + "!");
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Sleep 
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Sleep
         }
         switchState(FINISHED);
         isFinished = true;
-        // std::cout << "Process " << screenName << " finished executing command." << std::endl;
     }
     else {
         std::cout << "Cannot execute command. Process is not in RUNNING state." << std::endl;
@@ -44,7 +43,7 @@ void Process::logPrintCommand(const std::string& message) {
     if (logFile.is_open()) {
         auto t = std::time(nullptr);
         std::tm localTime;
-        localtime_s(&localTime, &t); 
+        localtime_s(&localTime, &t);
 
         logFile << "(" << std::put_time(&localTime, "%m/%d/%Y %I:%M:%S%p") << ") "
             << "Core:" << core << " \"" << message << "\"" << std::endl;
@@ -78,12 +77,15 @@ void Process::displayProcessInfo() const {
 void Process::run() {
     switchState(RUNNING);
     executeCommand([this]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        curLines++;
-        std::cout << pid << " executed line " << curLines << " / " << maxLines << std::endl; // JUST FOR TRACKING PROGRESS, comment if done here
+        // Only increment curLines if it is less than maxLines
+        if (curLines < maxLines) {
+            curLines++;
+        }
+        std::cout << pid << " executed line " + std::to_string(curLines) + " / " + std::to_string(maxLines) + "\n";
+        logPrintCommand("Hello world from " + screenName + "!");
+
         });
 }
-
 
 int Process::getPid() const {
     return pid;
