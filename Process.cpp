@@ -39,12 +39,18 @@ void Process::executeCommand(std::function<void()> command) {
 
 void Process::logPrintCommand(const std::string& message) {
     std::ofstream logFile(screenName + ".txt", std::ios::app);
-
     if (logFile.is_open()) {
+        // Check if the file is empty
+        logFile.seekp(0, std::ios::end);
+        if (logFile.tellp() == 0) {
+            // If the file is empty, write the title
+            logFile << "Process name: " << screenName << std::endl;
+            logFile << "Logs:" << std::endl << std::endl;
+        }
+
         auto t = std::time(nullptr);
         std::tm localTime;
         localtime_s(&localTime, &t);
-
         logFile << "(" << std::put_time(&localTime, "%m/%d/%Y %I:%M:%S%p") << ") "
             << "Core:" << core << " \"" << message << "\"" << std::endl;
     }

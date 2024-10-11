@@ -121,21 +121,6 @@ void printStatement(const string& statement, int coreID) {
     }
 }
 
-void exportTxt(const string& command) {
-    if (command == "start") {
-        outputFile.open("output.txt");
-        if (!outputFile.is_open()) {
-            cerr << "Unable to open output file" << std::endl;
-        }
-    }
-    else if (command == "end") {
-        if (outputFile.is_open()) {
-            outputFile.close();
-            cout << "Content has been exported to output.txt" << std::endl;
-        }
-    }
-}
-
 void displayMainMenu() {
     cout << "\nAvailable commands:\n";
     cout << " - initialize\n";
@@ -407,17 +392,17 @@ bool initializeCores(int numCores) {
 
 
 void createProcesses(int minLines, int maxLines) {
-    int coreIndex = 0;
-    //random_device rd;
-    //mt19937 gen(rd());
-    //uniform_int_distribution<> dis(minLines, maxLines);
+    int coreIndex = 1;
+    // random_device rd;
+    // mt19937 gen(rd());
+    // uniform_int_distribution<> dis(minLines, maxLines);
 
-    for (int i = 0; i < 10; ++i) {
-        //int randomLines = dis(gen);
+    for (int i = 1; i <= 10; ++i) {
+        // int randomLines = dis(gen);
         processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, maxLines);
         cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex
             << ", with " << maxLines << " lines." << endl;
-        coreIndex = (coreIndex + 1) % cores.size();
+        coreIndex = (coreIndex % cores.size()) + 1;
     }
 }
 
@@ -567,7 +552,7 @@ void readCommand(const string& command) {
         }
         currentTurn = 0;
         for (int i = 0; i < cores.size(); i++) {
-            threads.emplace_back(executeProcesses, i);
+            threads.emplace_back(executeProcesses, i + 1);
         }
 
         std::thread commandThread(commandListener);
