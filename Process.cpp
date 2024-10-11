@@ -58,24 +58,37 @@ void Process::logPrintCommand(const std::string& message) {
 }
 
 void Process::displayProcessInfo() const {
-    time_t now = time(0);
-    tm localtm;
-    localtime_s(&localtm, &now);
-
-    char timeBuffer[50];
-    strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
-
-    std::ostringstream timeStream;
-    timeStream << timeBuffer;
-
-    std::cout << "process" << std::setw(2) << std::setfill('0') << pid << "  "
-        << timeStream.str() << "  core: " << core
-        << "  " << curLines << "/" << maxLines;
-
     if (isFinished) {
-        std::cout << " finished" << std::endl;
+        time_t now = time(0);
+        tm localtm;
+        localtime_s(&localtm, &now);
+
+        char timeBuffer[50];
+        strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
+
+        std::ostringstream timeStream;
+        timeStream << timeBuffer;
+
+        std::cout << "process" << std::setw(2) << std::setfill('0') << pid << "  "
+            << timeStream.str() << "  Finished "
+            << "  " << curLines << "/" << maxLines;
+        
+        std::cout << std::endl;
     }
     else {
+        time_t now = time(0);
+        tm localtm;
+        localtime_s(&localtm, &now);
+
+        char timeBuffer[50];
+        strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
+
+        std::ostringstream timeStream;
+        timeStream << timeBuffer;
+
+        std::cout << "process" << std::setw(2) << std::setfill('0') << pid << "  "
+            << timeStream.str() << "  Core: " << core
+            << "  " << curLines << "/" << maxLines;
         std::cout << std::endl;
     }
 }

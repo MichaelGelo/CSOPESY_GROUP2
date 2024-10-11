@@ -456,7 +456,7 @@ void status(const std::vector<Process>& processes) {
         std::cout << "There are no active processes.\n";
     }
 
-    std::cout << "\n\nProcesses:\n";
+    std::cout << "\n\nFinished Processes:\n";
 
     // Check if there are any completed processes
     for (const auto& process : processes) {
