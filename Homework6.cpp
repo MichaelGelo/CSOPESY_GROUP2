@@ -375,7 +375,7 @@ bool initializeCores(int numCores) {
     if (numCores > 0) {
         cout << "Initializing OS... \n";
         cores.resize(numCores, 0);
-        for (int i = 1; i <= numCores; i++) {
+        for (int i = 0; i < numCores; i++) {
             ostringstream oss;
             oss << "Core" << i << " initialized and ready!";
             printStatement(oss.str(), i);
@@ -392,7 +392,7 @@ bool initializeCores(int numCores) {
 
 
 void createProcesses(int minLines, int maxLines) {
-    int coreIndex = 1;
+    int coreIndex = 0;
     // random_device rd;
     // mt19937 gen(rd());
     // uniform_int_distribution<> dis(minLines, maxLines);
@@ -402,7 +402,7 @@ void createProcesses(int minLines, int maxLines) {
         processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, maxLines);
         cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex
             << ", with " << maxLines << " lines." << endl;
-        coreIndex = (coreIndex % cores.size()) + 1;
+        coreIndex = (coreIndex + 1) % cores.size();
     }
 }
 
@@ -552,7 +552,7 @@ void readCommand(const string& command) {
         }
         currentTurn = 0;
         for (int i = 0; i < cores.size(); i++) {
-            threads.emplace_back(executeProcesses, i + 1);
+            threads.emplace_back(executeProcesses, i);
         }
 
         std::thread commandThread(commandListener);
