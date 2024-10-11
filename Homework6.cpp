@@ -408,15 +408,15 @@ bool initializeCores(int numCores) {
 
 void createProcesses(int minLines, int maxLines) {
     int coreIndex = 0;
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(minLines, maxLines);
+    //random_device rd;
+    //mt19937 gen(rd());
+    //uniform_int_distribution<> dis(minLines, maxLines);
 
     for (int i = 0; i < 10; ++i) {
-        int randomLines = dis(gen);
-        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, randomLines);
+        //int randomLines = dis(gen);
+        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, maxLines);
         cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex
-            << ", with " << randomLines << " lines." << endl;
+            << ", with " << maxLines << " lines." << endl;
         coreIndex = (coreIndex + 1) % cores.size();
     }
 }
@@ -470,8 +470,7 @@ void status(const std::vector<Process>& processes) {
         }
     }
 
-    std::cout << "------------------------------------\n";
-    std::cout << "Finished Processes:\n";
+    std::cout << "\n\n Processes:\n";
 
     // Loop through processes and display finished ones
     for (const auto& process : processes) {
@@ -479,6 +478,7 @@ void status(const std::vector<Process>& processes) {
             process.displayProcessInfo();
         }
     }
+    std::cout << "------------------------------------\n";
 }
 
 void handleProcessCommands(const string& input) {
@@ -523,7 +523,7 @@ void readCommand(const string& command) {
     }
     else if (command == "initialize") {
         if (initializeCores(4)) {
-            createProcesses(1, 50); // CHANGE MAX LINES HERE HA
+            createProcesses(1, 100); // CHANGE MAX LINES HERE HA
             initialized = true;
             cout << "Cores initialized and processes created.\n\n";
         }
