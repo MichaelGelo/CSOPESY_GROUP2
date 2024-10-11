@@ -459,6 +459,28 @@ void monitorProcesses() {
     }
 }
 
+void status(const std::vector<Process>& processes) {
+    std::cout << "------------------------------------\n";
+    std::cout << "Running Processes:\n";
+
+    // Loop through processes and display running ones
+    for (const auto& process : processes) {
+        if (process.getState() == Process::RUNNING) {
+            process.displayProcessInfo();
+        }
+    }
+
+    std::cout << "------------------------------------\n";
+    std::cout << "Finished Processes:\n";
+
+    // Loop through processes and display finished ones
+    for (const auto& process : processes) {
+        if (process.hasFinished()) {
+            process.displayProcessInfo();
+        }
+    }
+}
+
 void handleProcessCommands(const string& input) {
     istringstream iss(input);
     string command, option, name;
@@ -467,8 +489,9 @@ void handleProcessCommands(const string& input) {
     if (command == "screen") {
         if (option == "-ls") {
             stopMonitoring = false;
-            std::thread monitorThread(monitorProcesses);
-            monitorThread.detach();
+            //std::thread monitorThread(monitorProcesses);
+            //monitorThread.detach();
+            status(processes);
         }
         else {
             cout << "  Usage:\n";

@@ -81,7 +81,7 @@ void Process::run() {
         if (curLines < maxLines) {
             curLines++;
         }
-        std::cout << pid << " executed line " + std::to_string(curLines) + " / " + std::to_string(maxLines) + "\n";
+        //std::cout << pid << " executed line " + std::to_string(curLines) + " / " + std::to_string(maxLines) + "\n";
         logPrintCommand("Hello world from " + screenName + "!");
 
         });
