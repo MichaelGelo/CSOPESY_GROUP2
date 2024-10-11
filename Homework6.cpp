@@ -427,7 +427,7 @@ void createProcesses(int minLines, int maxLines) {
 void executeProcesses(int coreIndex) {
     for (auto& process : processes) {
         if (process.getCore() == coreIndex) {
-            std::cout << "Core " << coreIndex << " running process " << process.getPid() << std::endl;
+            //std::cout << "Core " << coreIndex << " running process " << process.getPid() << std::endl;
             process.run();
         }
     }
@@ -454,24 +454,37 @@ void monitorProcesses() {
 }
 
 void status(const std::vector<Process>& processes) {
+    bool hasRunningProcess = false;
+    bool hasCompletedProcess = false;
     std::cout << "------------------------------------\n";
-    std::cout << "Running Processes:\n";
 
-    // Loop through processes and display running ones
+    std::cout << "Running Processes:\n";
+    // Check if there are any active (running) processes
     for (const auto& process : processes) {
         if (process.getState() == Process::RUNNING) {
             process.displayProcessInfo();
+            hasRunningProcess = true;
         }
     }
 
-    std::cout << "\n\n Processes:\n";
+    if (!hasRunningProcess) {
+        std::cout << "There are no active processes.\n";
+    }
 
-    // Loop through processes and display finished ones
+    std::cout << "\n\nProcesses:\n";
+
+    // Check if there are any completed processes
     for (const auto& process : processes) {
         if (process.hasFinished()) {
             process.displayProcessInfo();
+            hasCompletedProcess = true;
         }
     }
+
+    if (!hasCompletedProcess) {
+        std::cout << "There are no completed processes.\n";
+    }
+
     std::cout << "------------------------------------\n";
 }
 
@@ -511,9 +524,31 @@ void commandListener() {
 }
 
 void readCommand(const string& command) {
+    if (currentScreen.empty()) {
+        mainMenuScreen.addOutput("Enter a command: " + command);
+    }
+    else {
+        screens[currentScreen].addOutput("[" + currentScreen + "]$ " + command);
+    }
+
     if (command == "exit") {
-        stopMonitoring = true;
-        exit(0);
+        if (!currentScreen.empty()) {
+            currentScreen.clear();
+            clear();
+        }
+        else {
+            stopMonitoring = true;
+            exit(0);
+        }
+    }
+    else if (command == "nvidia-smi") {
+        hiddenScreenCreate("nvidia-smi");
+    }
+    else if (command == "marquee") {
+        hiddenScreenCreate("marquee");
+    }
+    else if (command.find("screen") == 0) {
+        handleScreenCommands(command);
     }
     else if (command == "initialize") {
         if (initializeCores(4)) {
@@ -546,6 +581,28 @@ void readCommand(const string& command) {
                 cout << "Unknown command. Try again.\n";
             }
         }
+    }
+    else if (command == "scheduler-stop") {
+        if (!initialized) {
+            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
+            return;
+        }
+
+        cout << "Scheduler stop command recognized. Doing something.\n\n";
+    }
+    else if (command == "report-util") {
+        if (!initialized) {
+            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
+            return;
+        }
+
+        cout << "Report util command recognized. Doing something.\n\n";
+    }
+    else if (command == "clear") {
+        clear();
+    }
+    else {
+        handleScreenCommands(command);
     }
 }
 
