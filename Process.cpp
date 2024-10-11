@@ -1,10 +1,11 @@
 #include "Process.h"
 #include <iostream>
-#include <fstream>
-#include <ctime>
 #include <iomanip>
-#include <thread>
+#include <sstream>
+#include <ctime>
+#include <thread> 
 #include <chrono>
+#include <fstream> 
 
 Process::Process(int pid, std::string screenName, int core, int maxLines)
     : pid(pid), screenName(screenName), core(core), maxLines(maxLines), curLines(0), state(READY), isFinished(false) {}
@@ -30,7 +31,7 @@ void Process::executeCommand(std::function<void()> command) {
         }
         switchState(FINISHED);
         isFinished = true;
-        std::cout << "Process " << screenName << " finished executing command." << std::endl;
+        // std::cout << "Process " << screenName << " finished executing command." << std::endl;
     }
     else {
         std::cout << "Cannot execute command. Process is not in RUNNING state." << std::endl;
@@ -52,14 +53,37 @@ void Process::logPrintCommand(const std::string& message) {
 }
 
 void Process::displayProcessInfo() const {
-    std::cout << "Process ID: " << pid << "\n"
-        << "Screen Name: " << screenName << "\n"
-        << "Assigned Core: " << core << "\n"
-        << "Current State: " << (state == READY ? "READY" :
-            state == RUNNING ? "RUNNING" :
-            state == WAITING ? "WAITING" : "FINISHED")
-        << "\nFinished: " << (isFinished ? "Yes" : "No") << std::endl;
+    time_t now = time(0);
+    tm localtm;
+    localtime_s(&localtm, &now);
+
+    char timeBuffer[50];
+    strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
+
+    std::ostringstream timeStream;
+    timeStream << timeBuffer;
+
+    std::cout << "process" << std::setw(2) << std::setfill('0') << pid << "  "
+        << timeStream.str() << "  core: " << core
+        << "  " << curLines << "/" << maxLines;
+
+    if (isFinished) {
+        std::cout << " finished" << std::endl;
+    }
+    else {
+        std::cout << std::endl;
+    }
 }
+
+void Process::run() {
+    switchState(RUNNING);
+    executeCommand([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        curLines++;
+        std::cout << pid << " executed line " << curLines << " / " << maxLines << std::endl; // JUST FOR TRACKING PROGRESS, comment if done here
+        });
+}
+
 
 int Process::getPid() const {
     return pid;

@@ -12,6 +12,9 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <condition_variable>
+#include <functional>
+#include <random>
 
 using namespace std;
 
@@ -380,6 +383,7 @@ mutex mutexProcess;
 condition_variable cv;
 int currentTurn = 0;
 bool initialized = false;
+bool stopMonitoring = false;
 
 
 bool initializeCores(int numCores) {
@@ -401,28 +405,32 @@ bool initializeCores(int numCores) {
     return true;
 }
 
-void createProcesses() {
+
+void createProcesses(int minLines, int maxLines) {
     int coreIndex = 0;
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(minLines, maxLines);
 
     for (int i = 0; i < 10; ++i) {
-        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, 100);
-        cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex << endl;
-
+        int randomLines = dis(gen);
+        processes.emplace_back(i, "Process" + std::to_string(i), coreIndex, randomLines);
+        cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex
+            << ", with " << randomLines << " lines." << endl;
         coreIndex = (coreIndex + 1) % cores.size();
     }
 }
 
 
+// cout << "Created Process ID: " << i << ", Assigned to Core: " << coreIndex << endl;
+
 void executeProcesses(int coreIndex) {
     for (auto& process : processes) {
         if (process.getCore() == coreIndex) {
             std::unique_lock<std::mutex> lock(mutexProcess);
-
             cv.wait(lock, [&process] { return process.getPid() == currentTurn; });
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            process.switchState(Process::RUNNING);  // Switch to running before execution
-            process.executeCommand([]() { /* Command to be executed */ });
+            process.run();
 
             currentTurn++;
             cv.notify_all();
@@ -431,10 +439,8 @@ void executeProcesses(int coreIndex) {
 }
 
 
-
-
 void monitorProcesses() {
-    while (true) {
+    while (!stopMonitoring) {
         bool allFinished = true;
         {
             std::lock_guard<std::mutex> lock(mutexProcess);
@@ -453,38 +459,49 @@ void monitorProcesses() {
     }
 }
 
+void handleProcessCommands(const string& input) {
+    istringstream iss(input);
+    string command, option, name;
+    iss >> command >> option >> name;
 
-
-void readCommand(const string& command) {
-    if (currentScreen.empty()) {
-        mainMenuScreen.addOutput("Enter a command: " + command);
-    }
-    else {
-        screens[currentScreen].addOutput("[" + currentScreen + "]$ " + command);
-    }
-
-    if (command == "exit") {
-        if (!currentScreen.empty()) {
-            currentScreen.clear();
-            clear();
+    if (command == "screen") {
+        if (option == "-ls") {
+            stopMonitoring = false;
+            std::thread monitorThread(monitorProcesses);
+            monitorThread.detach();
         }
         else {
-            exit(0);
+            cout << "  Usage:\n";
+            cout << "  screen -ls (view progress results)\n\n";
         }
     }
-    else if (command == "nvidia-smi") {
-        hiddenScreenCreate("nvidia-smi");
+    else {
+        cout << "Unknown command. Try again.\n";
     }
-    else if (command == "marquee") {
-        hiddenScreenCreate("marquee");
+}
+
+void commandListener() {
+    string input;
+    while (true) {
+        cout << "Enter command: ";
+        getline(cin, input);
+        if (input == "exit") {
+            stopMonitoring = true;
+            break;
+        }
+        handleProcessCommands(input);
     }
-    else if (command.find("screen") == 0) {
-        handleScreenCommands(command);
+}
+
+void readCommand(const string& command) {
+    if (command == "exit") {
+        stopMonitoring = true;
+        exit(0);
     }
     else if (command == "initialize") {
         if (initializeCores(4)) {
-            createProcesses();
-            initialized = true; // Set the flag to true after successful initialization
+            createProcesses(1, 50); // CHANGE MAX LINES HERE HA
+            initialized = true;
             cout << "Cores initialized and processes created.\n\n";
         }
         else {
@@ -494,41 +511,24 @@ void readCommand(const string& command) {
     else if (command == "scheduler-test") {
         if (!initialized) {
             cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
-            return; // Exit the command handling if not initialized
+            return;
         }
-
-        currentTurn = 0; // Reset current turn before starting
+        currentTurn = 0;
         for (int i = 0; i < cores.size(); i++) {
             threads.emplace_back(executeProcesses, i);
         }
+
+        std::thread commandThread(commandListener);
+        commandThread.detach();
 
         for (auto& t : threads) {
             if (t.joinable()) {
                 t.join();
             }
+            else {
+                cout << "Unknown command. Try again.\n";
+            }
         }
-    }
-    else if (command == "scheduler-stop") {
-        if (!initialized) {
-            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
-            return;
-        }
-
-        cout << "Scheduler stop command recognized. Doing something.\n\n";
-    }
-    else if (command == "report-util") {
-        if (!initialized) {
-            cout << "Please initialize the cores first by using the 'initialize' command.\n\n";
-            return;
-        }
-
-        cout << "Report util command recognized. Doing something.\n\n";
-    }
-    else if (command == "clear") {
-        clear();
-    }
-    else {
-        handleScreenCommands(command);
     }
 }
 
