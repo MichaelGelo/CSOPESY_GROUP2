@@ -134,7 +134,7 @@
     <ClCompile Include="MarqueeConsole.cpp" />
     <ClCompile Include="MemoryConsole.cpp" />
     <ClCompile Include="SchedulingConsole.cpp" />
-    <ClCompile Include="PlaceholderConsole.cpp" />
+    <ClCompile Include="ScreenConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AConsole.h" />
@@ -143,7 +143,7 @@
     <ClInclude Include="MarqueeConsole.h" />
     <ClInclude Include="MemoryConsole.h" />
     <ClInclude Include="SchedulingConsole.h" />
-    <ClInclude Include="PlaceholderConsole.h" />
+    <ClInclude Include="ScreenConsole.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

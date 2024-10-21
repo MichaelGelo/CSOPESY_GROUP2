@@ -36,7 +36,7 @@
     <ClCompile Include="MemoryConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PlaceholderConsole.cpp">
+    <ClCompile Include="ScreenConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,7 +59,7 @@
     <ClInclude Include="MemoryConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PlaceholderConsole.h">
+    <ClInclude Include="ScreenConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

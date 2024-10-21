@@ -2,7 +2,7 @@
 #include <iostream>
 #include <windows.h>
 #include "ConsoleManager.h"
-#include "PlaceholderConsole.h"
+#include "ScreenConsole.h"
 
 MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false) {}
 
@@ -54,7 +54,7 @@ void MainConsole::process() {
     }
     else if (command.rfind("screen -s ", 0) == 0) {
         std::string processName = command.substr(10);
-        auto newScreen = std::make_shared<PlaceholderConsole>(processName, 1, 100);
+        auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
         ConsoleManager::getInstance()->registerScreen(newScreen);
         return;  // Don't display menu after switching
     }
@@ -62,8 +62,8 @@ void MainConsole::process() {
         std::string processName = command.substr(10);
         if (ConsoleManager::getInstance()->activeScreens.find(processName) !=
             ConsoleManager::getInstance()->activeScreens.end()) {
-            auto placeholderConsole = std::make_shared<PlaceholderConsole>(processName, 1, 100);
-            ConsoleManager::getInstance()->switchConsole(placeholderConsole);
+            auto screenConsole = std::make_shared<ScreenConsole>(processName, 1, 100);
+            ConsoleManager::getInstance()->switchConsole(screenConsole);
         }
         else {
             std::cout << "No active screen found for: " << processName << std::endl;

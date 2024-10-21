@@ -4,7 +4,7 @@
 #include <string>
 #include <Windows.h>
 #include "AConsole.h"
-#include "PlaceholderConsole.h"
+#include "ScreenConsole.h"
 
 const std::string MAIN_CONSOLE = "MAIN_CONSOLE";
 const std::string MARQUEE_CONSOLE = "MARQUEE_CONSOLE";
@@ -30,7 +30,7 @@ public:
     // New getter for currentConsole
     std::shared_ptr<AConsole> getCurrentConsole() const;
 
-    std::unordered_map<std::string, std::shared_ptr<PlaceholderConsole>> activeScreens;
+    std::unordered_map<std::string, std::shared_ptr<ScreenConsole>> activeScreens;
     void registerScreen(std::shared_ptr<AConsole> screenRef);
 
 

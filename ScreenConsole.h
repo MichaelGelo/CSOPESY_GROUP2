@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-class PlaceholderConsole : public AConsole {
+class ScreenConsole : public AConsole {
 public:
-    PlaceholderConsole(const std::string& processName, int currentLine, int totalLines);
+    ScreenConsole(const std::string& processName, int currentLine, int totalLines);
 
     void onEnabled() override;
     void display() override;

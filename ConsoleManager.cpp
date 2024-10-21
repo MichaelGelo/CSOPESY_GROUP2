@@ -3,7 +3,7 @@
 #include "MarqueeConsole.h"
 #include "SchedulingConsole.h"
 #include "MemoryConsole.h"
-#include "PlaceholderConsole.h"
+#include "ScreenConsole.h"
 #include <iostream>
 ConsoleManager* ConsoleManager::sharedInstance = nullptr;
 
@@ -62,12 +62,14 @@ void ConsoleManager::switchConsole(std::shared_ptr<AConsole> console) {
         currentConsole->onEnabled();
         currentConsole->display();
 
-        // Assume PlaceholderConsole can be cast from AConsole
-        if (auto placeholderConsole = std::dynamic_pointer_cast<PlaceholderConsole>(console)) {
-            activeScreens[placeholderConsole->getName()] = placeholderConsole; // Store active screen
+        // Assume ScreenConsole can be cast from AConsole
+        if (auto screenConsole = std::dynamic_pointer_cast<ScreenConsole>(console)) {
+            activeScreens[screenConsole->getName()] = screenConsole; // Store active screen
         }
     }
 }
+
+
 
 void ConsoleManager::returnToPreviousConsole() {
     if (previousConsole) {

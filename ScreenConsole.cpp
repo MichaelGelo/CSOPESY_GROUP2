@@ -1,4 +1,4 @@
-#include "PlaceholderConsole.h"
+#include "ScreenConsole.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -6,26 +6,26 @@
 #include <sstream>
 #include "ConsoleManager.h"
 
-PlaceholderConsole::PlaceholderConsole(const std::string& processName, int currentLine, int totalLines)
+ScreenConsole::ScreenConsole(const std::string& processName, int currentLine, int totalLines)
     : AConsole("PLACEHOLDER_CONSOLE"), processName(processName), currentLine(currentLine), totalLines(totalLines)
 {
     timestamp = getCurrentTimestamp();
 }
 
-void PlaceholderConsole::onEnabled() {
+void ScreenConsole::onEnabled() {
     system("cls");  // Clear the console
     this->display();
 }
 
 
-void PlaceholderConsole::display() {
+void ScreenConsole::display() {
     std::cout << "Process Name: " << processName << std::endl;
     std::cout << "Current Line: " << currentLine << " / Total Lines: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
     std::cout << "Enter a command or type 'exit' to return to the main menu." << std::endl;
 }
 
-void PlaceholderConsole::process() {
+void ScreenConsole::process() {
     std::string command;
 
     std::cout << '[' << processName << "] $ ";
@@ -51,7 +51,7 @@ void PlaceholderConsole::process() {
     display();  // Redisplay the console after processing
 }
 
-std::string PlaceholderConsole::getCurrentTimestamp() const {
+std::string ScreenConsole::getCurrentTimestamp() const {
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_c);
