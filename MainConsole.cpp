@@ -69,9 +69,11 @@ void MainConsole::process() {
     }
     else if (command.rfind("screen -r ", 0) == 0) {
         std::string processName = command.substr(10);
+        // Check if the screen exists in activeScreens
         if (ConsoleManager::getInstance()->activeScreens.find(processName) !=
             ConsoleManager::getInstance()->activeScreens.end()) {
-            auto screenConsole = std::make_shared<ScreenConsole>(processName, 1, 100);
+            // If it exists, switch to that screen
+            auto screenConsole = ConsoleManager::getInstance()->activeScreens[processName];
             ConsoleManager::getInstance()->switchConsole(screenConsole);
         }
         else {
@@ -79,6 +81,7 @@ void MainConsole::process() {
         }
         return;  // Don't display menu after switching
     }
+
     else if (command == "exit") {
         std::cout << "Exit command recognized. Preparing to exit." << std::endl;
         ConsoleManager::getInstance()->exitApplication();

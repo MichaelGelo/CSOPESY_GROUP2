@@ -61,6 +61,7 @@ void ConsoleManager::switchConsole(std::shared_ptr<AConsole> console) {
         currentConsole = console;
         currentConsole->onEnabled();
         currentConsole->display();
+        currentConsole->process();
 
         // Assume ScreenConsole can be cast from AConsole
         if (auto screenConsole = std::dynamic_pointer_cast<ScreenConsole>(console)) {
@@ -116,6 +117,9 @@ void ConsoleManager::registerScreen(std::shared_ptr<AConsole> screenRef) {
     }
     this->consoleTable[screenName] = screenRef; // Register the screen with its name
     this->switchConsole(screenName); // Switch to the new screen
+
+    this->activeScreens[screenRef->getName()] = std::static_pointer_cast<ScreenConsole>(screenRef);
+
 }
 
 
