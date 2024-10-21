@@ -35,7 +35,7 @@ void ConsoleManager::destroy() {
 
 void ConsoleManager::drawConsole() const {
     if (currentConsole) {
-        currentConsole->display();
+        //currentConsole->display();
     }
 }
 
@@ -75,7 +75,7 @@ void ConsoleManager::returnToPreviousConsole() {
     if (previousConsole) {
         std::swap(currentConsole, previousConsole);
         if (auto mainConsole = std::dynamic_pointer_cast<MainConsole>(currentConsole)) {
-            mainConsole->redisplay();
+            mainConsole->display();
         }
         else {
             system("cls");  // Clear the console

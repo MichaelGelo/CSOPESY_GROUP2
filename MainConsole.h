@@ -18,7 +18,6 @@ public:
     void clear() const;
     void color(int n) const;
 
-    void redisplay();
 private:
     std::vector<std::string> commandHist;
     void showHistory() const;

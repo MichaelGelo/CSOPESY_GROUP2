@@ -18,22 +18,14 @@ void MainConsole::display() {
     //// Remove the for loop from here
     //enter();
     //system("cls");  // Clear the console
+    system("cls");
     menu();
     for (const auto& cmd : commandHist) {
         std::cout << "Enter a command: " << cmd << std::endl;
         std::cout << "You entered: " << cmd << std::endl;
     }
     enter();
-}
 
-void MainConsole::redisplay() {
-    system("cls");  // Clear the console
-    menu();
-    for (const auto& cmd : commandHist) {
-        std::cout << "Enter a command: " << cmd << std::endl;
-        std::cout << "You entered: " << cmd << std::endl;
-    }
-    // Remove the enter() call from here
 }
 
 void MainConsole::process() {
@@ -45,13 +37,25 @@ void MainConsole::process() {
     }
 
     std::cout << "You entered: " << command << std::endl;
-
     if (command == "initialize") {
-        std::cout << "Initialize command recognized. Doing something." << std::endl;
+        commandHist.push_back("Initialize command recognized. Doing something.");
     }
     else if (command == "screen") {
         std::cout << "Screen command recognized. Doing something." << std::endl;
     }
+    else if (command == "scheduler-test") {
+        std::cout << "Scheduler test command recognized. Doing something." << std::endl;
+    }
+    else if (command == "scheduler-stop") {
+        std::cout << "Scheduler stop command recognized. Doing something." << std::endl;
+    }
+    else if (command == "report-util") {
+        std::cout << "Report util command recognized. Doing something." << std::endl;
+    }
+    else if (command == "clear") {
+        system("cls");
+    }
+
     else if (command.rfind("screen -s ", 0) == 0) {
         std::string processName = command.substr(10);
         auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
