@@ -34,6 +34,8 @@ public:
     void registerScreen(std::shared_ptr<AConsole> screenRef);
 
     bool screenExists(const std::string& name) const;
+
+    void showActiveScreens() const;
 private:
     ConsoleManager();
     ~ConsoleManager() = default;

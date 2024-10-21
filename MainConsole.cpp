@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "ConsoleManager.h"
 #include "ScreenConsole.h"
+#include <sstream>
 
 MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false) {}
 
@@ -11,22 +12,22 @@ void MainConsole::onEnabled() {
 }
 
 void MainConsole::display() {
-    //if (!menuShown) {
-    //    menu();
-    //    menuShown = true;
-    //}
-    //// Remove the for loop from here
-    //enter();
-    //system("cls");  // Clear the console
     system("cls");
     menu();
-    for (const auto& cmd : commandHist) {
-        std::cout << "Enter a command: " << cmd << std::endl;
-        std::cout << "You entered: " << cmd << std::endl;
-    }
-    enter();
 
+    for (const auto& cmd : commandHist) {
+        // just for aesthetic
+        if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0)) {
+            std::cout << cmd << std::endl;
+        }
+        else {
+            std::cout << "You entered: " << cmd << std::endl;
+        }
+    }
+
+    enter();
 }
+
 
 void MainConsole::process() {
     std::string command;
@@ -36,30 +37,40 @@ void MainConsole::process() {
         commandHist.push_back(command);
     }
 
-    std::cout << "You entered: " << command << std::endl;
     if (command == "initialize") {
-        commandHist.push_back("Initialize command recognized. Doing something.");
+        captureAndStoreOutput([]() {
+            std::cout << "Initialize command recognized. Doing something." << std::endl;
+            });
     }
     else if (command == "screen") {
-        std::cout << "Screen command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([]() {
+            std::cout << "Screen command recognized. Doing something." << std::endl;
+            });
     }
     else if (command == "scheduler-test") {
-        std::cout << "Scheduler test command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([]() {
+            std::cout << "Scheduler test command recognized. Doing something." << std::endl;
+            });
     }
     else if (command == "scheduler-stop") {
-        std::cout << "Scheduler stop command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([]() {
+            std::cout << "Scheduler stop command recognized. Doing something." << std::endl;
+            });
     }
     else if (command == "report-util") {
-        std::cout << "Report util command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([]() {
+            std::cout << "Report util command recognized. Doing something." << std::endl;
+            });
     }
     else if (command == "clear") {
         system("cls");
     }
-
     else if (command.rfind("screen -s ", 0) == 0) {
         std::string processName = command.substr(10);
         if (ConsoleManager::getInstance()->screenExists(processName)) {
-            std::cout << "Screen name \"" << processName << "\" already exists. Please use a different name." << std::endl;
+            captureAndStoreOutput([processName]() {
+                std::cout << "Screen name \"" << processName << "\" already exists. Please use a different name." << std::endl;
+                });
         }
         else {
             auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
@@ -69,32 +80,42 @@ void MainConsole::process() {
     }
     else if (command.rfind("screen -r ", 0) == 0) {
         std::string processName = command.substr(10);
-        // Check if the screen exists in activeScreens
         if (ConsoleManager::getInstance()->activeScreens.find(processName) !=
             ConsoleManager::getInstance()->activeScreens.end()) {
-            // If it exists, switch to that screen
             auto screenConsole = ConsoleManager::getInstance()->activeScreens[processName];
             ConsoleManager::getInstance()->switchConsole(screenConsole);
         }
         else {
-            std::cout << "No active screen found for: " << processName << std::endl;
+            captureAndStoreOutput([processName]() {
+                std::cout << "No active screen found for: " << processName << std::endl;
+                });
         }
         return;  // Don't display menu after switching
     }
+    else if (command == "screen -ls") {
+        captureAndStoreOutput([this]() {
+            ConsoleManager::getInstance()->showActiveScreens();
+            });
+        display(); 
+        return;  // Don't display menu after listing screens
+    }
 
     else if (command == "exit") {
-        std::cout << "Exit command recognized. Preparing to exit." << std::endl;
+        captureAndStoreOutput([]() {
+            std::cout << "Exit command recognized. Preparing to exit." << std::endl;
+            });
         ConsoleManager::getInstance()->exitApplication();
-        return;
+        return;  
     }
     else if (command == "history") {
         showHistory();
     }
     else if (!command.empty()) {
-        std::cout << "Command not recognized: " << command << std::endl;
+        captureAndStoreOutput([command]() {
+            std::cout << "Command not recognized: " << command << std::endl;
+            });
+        display();
     }
-
-    //enter();
 }
 
 void MainConsole::menu() const {
@@ -130,4 +151,17 @@ void MainConsole::showHistory() const {
     for (size_t i = 0; i < commandHist.size(); ++i) {
         std::cout << i + 1 << ": " << commandHist[i] << std::endl;
     }
+}
+
+void MainConsole::captureAndStoreOutput(std::function<void()> func) {
+    std::ostringstream outputStream;
+    std::streambuf* oldCoutBuffer = std::cout.rdbuf(); // Save the old buffer
+    std::cout.rdbuf(outputStream.rdbuf()); // Redirect cout to outputStream
+
+    func(); // Call the passed function
+
+    std::cout.rdbuf(oldCoutBuffer); // Restore the original cout buffer
+
+    // Add the captured output to commandHist
+    commandHist.push_back(outputStream.str());
 }

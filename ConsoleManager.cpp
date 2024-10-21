@@ -126,3 +126,17 @@ void ConsoleManager::registerScreen(std::shared_ptr<AConsole> screenRef) {
 bool ConsoleManager::screenExists(const std::string& name) const {
     return activeScreens.find(name) != activeScreens.end();
 }
+
+void ConsoleManager::showActiveScreens() const {
+    if (activeScreens.empty()) {
+        std::cout << "No active screens." << std::endl;
+    }
+    else {
+        std::cout << "Active Screens:" << std::endl;
+        for (const auto& screen : activeScreens) {
+            std::cout << "- " << screen.first << std::endl;  // Display screen names
+        }
+    }
+    // Add a line to separate active screens from the command prompt
+    std::cout << std::endl;
+}

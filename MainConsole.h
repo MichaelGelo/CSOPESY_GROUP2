@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include "ScreenConsole.h"
+#include <functional>
 
 class MainConsole : public AConsole {
 public:
@@ -15,13 +16,15 @@ public:
     void process() override;
     void menu() const;
     void enter() const;
-    void clear() const;
     void color(int n) const;
 
 private:
+    void captureAndStoreOutput(std::function<void()> func);
     std::vector<std::string> commandHist;
+
     void showHistory() const;
     bool menuShown;
+    void clear();
 };
 
 #endif
