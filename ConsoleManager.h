@@ -33,7 +33,7 @@ public:
     std::unordered_map<std::string, std::shared_ptr<ScreenConsole>> activeScreens;
     void registerScreen(std::shared_ptr<AConsole> screenRef);
 
-
+    bool screenExists(const std::string& name) const;
 private:
     ConsoleManager();
     ~ConsoleManager() = default;

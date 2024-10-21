@@ -7,13 +7,14 @@
 #include "ConsoleManager.h"
 
 ScreenConsole::ScreenConsole(const std::string& processName, int currentLine, int totalLines)
-    : AConsole("PLACEHOLDER_CONSOLE"), processName(processName), currentLine(currentLine), totalLines(totalLines)
+    : AConsole(processName), processName(processName), currentLine(currentLine), totalLines(totalLines)
 {
     timestamp = getCurrentTimestamp();
 }
 
+
 void ScreenConsole::onEnabled() {
-    system("cls");  // Clear the console
+    system("cls");  
     this->display();
 }
 
@@ -60,3 +61,4 @@ std::string ScreenConsole::getCurrentTimestamp() const {
     oss << std::put_time(&now_tm, "%m/%d/%Y, %I:%M:%S %p");
     return oss.str();
 }
+

@@ -109,10 +109,16 @@ std::shared_ptr<AConsole> ConsoleManager::getCurrentConsole() const {
 }
 
 void ConsoleManager::registerScreen(std::shared_ptr<AConsole> screenRef) {
-    if (this->consoleTable.find(screenRef->getName()) != this->consoleTable.end()) {
-        std::cerr << "Screen name " << screenRef->getName() << " already exists. Please use a different name." << std::endl;
+    const std::string& screenName = screenRef->getName(); // Store the name
+    if (this->consoleTable.find(screenName) != this->consoleTable.end()) {
+        std::cerr << "Screen name " << screenName << " already exists. Please use a different name." << std::endl;
         return;
     }
-    this->consoleTable[screenRef->getName()] = screenRef;
-    this->switchConsole(screenRef->getName());
+    this->consoleTable[screenName] = screenRef; // Register the screen with its name
+    this->switchConsole(screenName); // Switch to the new screen
+}
+
+
+bool ConsoleManager::screenExists(const std::string& name) const {
+    return activeScreens.find(name) != activeScreens.end();
 }

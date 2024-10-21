@@ -58,9 +58,14 @@ void MainConsole::process() {
 
     else if (command.rfind("screen -s ", 0) == 0) {
         std::string processName = command.substr(10);
-        auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
-        ConsoleManager::getInstance()->registerScreen(newScreen);
-        return;  // Don't display menu after switching
+        if (ConsoleManager::getInstance()->screenExists(processName)) {
+            std::cout << "Screen name \"" << processName << "\" already exists. Please use a different name." << std::endl;
+        }
+        else {
+            auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
+            ConsoleManager::getInstance()->registerScreen(newScreen);
+            return;  // Don't display menu after switching
+        }
     }
     else if (command.rfind("screen -r ", 0) == 0) {
         std::string processName = command.substr(10);
