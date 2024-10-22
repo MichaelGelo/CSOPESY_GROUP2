@@ -4,7 +4,9 @@
 #include "ConsoleManager.h"
 #include "ScreenConsole.h"
 #include <sstream>
-
+#include <fstream>
+#include <ctime>
+#include <string>
 MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false) {}
 
 void MainConsole::onEnabled() {
@@ -18,7 +20,8 @@ void MainConsole::display() {
     for (const auto& cmd : commandHist) {
         // just for aesthetic
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
-            || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)) {
+            || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
+            || (cmd.rfind("Generating process utilization report...", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -59,9 +62,12 @@ void MainConsole::process() {
             });
     }
     else if (command == "report-util") {
-        captureAndStoreOutput([]() {
-            std::cout << "Report util command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([this]() {
+            std::cout << "Generating process utilization report...\n";
+            saveProcessReport();
+            std::cout << "Report has been saved to csopesy-log.txt\n";
             });
+        display();
     }
     else if (command == "clear") {
         system("cls");
@@ -208,4 +214,32 @@ void MainConsole::displayProcessStatus() const {
     }
 
     std::cout << "-----------------------------------------------------------------\n";
+}
+
+void MainConsole::saveProcessReport() const {
+    std::ofstream logFile("csopesy-log.txt", std::ios::app);
+    if (!logFile) {
+        std::cout << "Error: Could not open log file." << std::endl;
+        return;
+    }
+
+    // Get current time for the log entry
+    time_t now = time(0);
+    char* dt = ctime(&now);
+
+    // Write header with timestamp
+    logFile << "\n=================================================================\n";
+    logFile << "Process Report - Generated at: " << dt;
+    logFile << "=================================================================\n";
+
+    // Redirect cout to the file temporarily
+    std::streambuf* oldCoutBuffer = std::cout.rdbuf();
+    std::cout.rdbuf(logFile.rdbuf());
+
+    // Use existing display function
+    displayProcessStatus();
+
+    // Restore cout
+    std::cout.rdbuf(oldCoutBuffer);
+    logFile.close();
 }

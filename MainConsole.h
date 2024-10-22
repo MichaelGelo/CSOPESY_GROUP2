@@ -29,6 +29,7 @@ private:
     void showHistory() const;
     bool menuShown;
     void clear();
+    void saveProcessReport() const;
 };
 
 #endif
