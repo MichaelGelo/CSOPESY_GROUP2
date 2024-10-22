@@ -19,10 +19,12 @@ void ScreenConsole::onEnabled() {
 
 void ScreenConsole::display() {
     system("cls");
-    std::cout << "Process Name: " << processName << std::endl;
-    std::cout << "Current Line: " << currentLine << " / Total Lines: " << totalLines << std::endl;
+    std::cout << "Process: " << processName << std::endl;
+    std::cout << "ID: " << processName << std::endl;
+    std::cout << "\nCurrent Instruction Line: " << currentLine << std::endl;
+    std::cout << "Lines of Code: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
-    std::cout << "\nEnter a command or type 'exit' to return to the main menu.\n" << std::endl;
+    std::cout << "\nType 'exit' to return to the main menu.\n" << std::endl;
     // Display last command
     if (!lastCommand.empty()) {
         std::cout << '[' << processName << "] $ " << lastCommand << std::endl;
@@ -33,32 +35,34 @@ void ScreenConsole::display() {
 void ScreenConsole::process() {
     std::string command;
 
-    while (true) { 
+    while (true) {
         std::cout << '[' << processName << "] $ ";
-        std::getline(std::cin, command); 
+        std::getline(std::cin, command);
 
         if (command.empty()) {
-            std::cout << "No command entered." << std::endl;
+            std::cout << "Command not recognized: (empty command)" << std::endl;
             continue; 
         }
-
 
         lastCommand = command;
 
         if (command == "exit") {
             ConsoleManager::getInstance()->returnToPreviousConsole();
-            break; 
+            break;
         }
 
- 
-        std::cout << "Executing command: " << command << std::endl;
-        
-        std::cout << "Command executed." << std::endl;
+        if (command == "someCommand") {
+            std::cout << "Command executed." << std::endl;
+        }
+        else {
+            
+            std::cout << "Command not recognized: " << command << std::endl;
+        }
 
-        
-        display();
     }
 }
+
+
 
 std::string ScreenConsole::getCurrentTimestamp() const {
     auto now = std::chrono::system_clock::now();

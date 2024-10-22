@@ -17,7 +17,8 @@ void MainConsole::display() {
 
     for (const auto& cmd : commandHist) {
         // just for aesthetic
-        if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0)) {
+        if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
+            || (cmd.rfind("No active screen found for:", 0) == 0) || (cmd.rfind("Screen name", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -71,6 +72,7 @@ void MainConsole::process() {
             captureAndStoreOutput([processName]() {
                 std::cout << "Screen name \"" << processName << "\" already exists. Please use a different name." << std::endl;
                 });
+            display();
         }
         else {
             auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
@@ -89,6 +91,7 @@ void MainConsole::process() {
             captureAndStoreOutput([processName]() {
                 std::cout << "No active screen found for: " << processName << std::endl;
                 });
+            display();
         }
         return;  // Don't display menu after switching
     }
