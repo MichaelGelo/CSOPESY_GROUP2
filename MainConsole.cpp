@@ -217,7 +217,7 @@ void MainConsole::displayProcessStatus() const {
 }
 
 void MainConsole::saveProcessReport() const {
-    std::ofstream logFile("csopesy-log.txt", std::ios::app);
+    std::ofstream logFile("csopesy-log.txt");
     if (!logFile) {
         std::cout << "Error: Could not open log file." << std::endl;
         return;
