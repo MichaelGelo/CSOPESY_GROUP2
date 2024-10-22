@@ -18,7 +18,7 @@ void MainConsole::display() {
     for (const auto& cmd : commandHist) {
         // just for aesthetic
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
-            || (cmd.rfind("No active screen found for:", 0) == 0) || (cmd.rfind("Screen name", 0) == 0)) {
+            || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -75,9 +75,13 @@ void MainConsole::process() {
             display();
         }
         else {
+            // Create process with default core=1 and maxLines=100
+            auto newProcess = std::make_shared<Process>(nextPid++, processName, 1, 100);
+            processes.push_back(newProcess);
+
             auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
             ConsoleManager::getInstance()->registerScreen(newScreen);
-            return;  // Don't display menu after switching
+            return;
         }
     }
     else if (command.rfind("screen -r ", 0) == 0) {
@@ -89,7 +93,7 @@ void MainConsole::process() {
         }
         else {
             captureAndStoreOutput([processName]() {
-                std::cout << "No active screen found for: " << processName << std::endl;
+                std::cout << "Process <" << processName <<"> not found."<< std::endl;
                 });
             display();
         }
@@ -97,10 +101,10 @@ void MainConsole::process() {
     }
     else if (command == "screen -ls") {
         captureAndStoreOutput([this]() {
-            ConsoleManager::getInstance()->showActiveScreens();
+            displayProcessStatus();
             });
-        display(); 
-        return;  // Don't display menu after listing screens
+        display();
+        return;
     }
 
     else if (command == "exit") {
@@ -167,4 +171,41 @@ void MainConsole::captureAndStoreOutput(std::function<void()> func) {
 
     // Add the captured output to commandHist
     commandHist.push_back(outputStream.str());
+}
+
+void MainConsole::displayProcessStatus() const {
+    bool hasRunningProcess = false;
+    bool hasFinishedProcess = false;
+
+    std::cout << "-----------------------------------------------------------------\n";
+    std::cout << "Running Processes:\n";
+
+    // Display running processes (READY, RUNNING, WAITING states)
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::READY || state == Process::RUNNING || state == Process::WAITING) {
+            process->displayProcessInfo();
+            hasRunningProcess = true;
+        }
+    }
+
+    if (!hasRunningProcess) {
+        std::cout << "There are no active processes.\n";
+    }
+
+    std::cout << "\nFinished Processes:\n";
+
+    // Display finished processes (FINISHED state)
+    for (const auto& process : processes) {
+        if (process->getState() == Process::FINISHED || process->hasFinished()) {
+            process->displayProcessInfo();
+            hasFinishedProcess = true;
+        }
+    }
+
+    if (!hasFinishedProcess) {
+        std::cout << "There are no completed processes.\n";
+    }
+
+    std::cout << "-----------------------------------------------------------------\n";
 }

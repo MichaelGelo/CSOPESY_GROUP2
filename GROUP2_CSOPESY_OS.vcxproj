@@ -104,6 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions) _CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +134,7 @@
     <ClCompile Include="MainConsole.cpp" />
     <ClCompile Include="MarqueeConsole.cpp" />
     <ClCompile Include="MemoryConsole.cpp" />
+    <ClCompile Include="Process.cpp" />
     <ClCompile Include="SchedulingConsole.cpp" />
     <ClCompile Include="ScreenConsole.cpp" />
   </ItemGroup>
@@ -142,6 +144,7 @@
     <ClInclude Include="MainConsole.h" />
     <ClInclude Include="MarqueeConsole.h" />
     <ClInclude Include="MemoryConsole.h" />
+    <ClInclude Include="Process.h" />
     <ClInclude Include="SchedulingConsole.h" />
     <ClInclude Include="ScreenConsole.h" />
   </ItemGroup>

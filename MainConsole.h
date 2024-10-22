@@ -7,7 +7,7 @@
 #include <memory>
 #include "ScreenConsole.h"
 #include <functional>
-
+#include "Process.h"
 class MainConsole : public AConsole {
 public:
     MainConsole();
@@ -17,6 +17,10 @@ public:
     void menu() const;
     void enter() const;
     void color(int n) const;
+
+    std::vector<std::shared_ptr<Process>> processes;
+    int nextPid = 1;
+    void displayProcessStatus() const;
 
 private:
     void captureAndStoreOutput(std::function<void()> func);
