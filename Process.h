@@ -15,7 +15,7 @@ private:
     int curLines;
     bool isFinished;
     mutable std::mutex mutex;
-
+    
 public:
     enum ProcessState {
         READY,

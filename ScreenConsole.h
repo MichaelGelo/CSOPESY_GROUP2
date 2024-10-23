@@ -21,4 +21,6 @@ private:
     std::string timestamp; // Timestamp variable
     bool isActive; // State variable to track if the screen is active
     std::string lastCommand;
+
+    void handleProcessSmi();
 };

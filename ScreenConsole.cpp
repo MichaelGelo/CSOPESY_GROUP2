@@ -50,11 +50,10 @@ void ScreenConsole::process() {
             ConsoleManager::getInstance()->returnToPreviousConsole();
             break;
         }
-
-        if (command == "someCommand") {
-            std::cout << "Command executed." << std::endl;
+        else if (command == "process-smi") {
+            handleProcessSmi();
         }
-        else {
+        else{
             
             std::cout << "Command not recognized: " << command << std::endl;
         }
@@ -72,4 +71,17 @@ std::string ScreenConsole::getCurrentTimestamp() const {
     std::ostringstream oss;
     oss << std::put_time(&now_tm, "%m/%d/%Y, %I:%M:%S %p");
     return oss.str();
+}
+
+void ScreenConsole::handleProcessSmi() {
+    std::cout << "\nProcess: " << processName << std::endl;
+    std::cout << "ID: " << processName << std::endl;
+
+    if (currentLine >= totalLines) {
+        std::cout << "Finished!" << std::endl;
+    }
+    else {
+        std::cout << "\nCurrent Instruction Line: " << currentLine << std::endl;
+        std::cout << "Lines of Code: " << totalLines << "\n" << std::endl;
+    }
 }
