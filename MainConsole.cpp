@@ -7,7 +7,8 @@
 #include <fstream>
 #include <ctime>
 #include <string>
-MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false) {}
+#include <map> 
+MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false) {}
 
 void MainConsole::onEnabled() {
     display();
@@ -32,6 +33,30 @@ void MainConsole::display() {
     enter();
 }
 
+std::map<std::string, std::string> readConfigFile(const std::string& filename) {
+    std::map<std::string, std::string> config;
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {
+        std::cout << "Error: Could not open configuration file: " << filename << std::endl;
+        return config;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t pos = line.find(' ');
+        if (pos != std::string::npos) {
+            std::string key = line.substr(0, pos);
+            std::string value = line.substr(pos + 1);
+            config[key] = value;
+        }
+    }
+
+    file.close();
+    return config;
+}
+
+
 
 void MainConsole::process() {
     std::string command;
@@ -42,10 +67,41 @@ void MainConsole::process() {
     }
 
     if (command == "initialize") {
-        captureAndStoreOutput([]() {
-            std::cout << "Initialize command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([this]() {
+            std::cout << "Initialize command recognized. Reading configuration..." << std::endl;
+
+            auto config = readConfigFile("config.txt");
+
+            if (config.empty()) {
+                std::cout << "No valid configuration found." << std::endl;
+            }
+            else {
+                std::cout << "Configuration loaded:" << std::endl;
+
+                // Stores the parameters from string to integers.
+
+                int numCpu = std::stoi(config["num-cpu"]);
+                std::string scheduler = config["scheduler"];
+                int quantumCycles = std::stoi(config["quantum-cycles"]);
+                int batchProcessFreq = std::stoi(config["batch-process-freq"]);
+                int minIns = std::stoi(config["min-ins"]);
+                int maxIns = std::stoi(config["max-ins"]);
+                int delayPerExec = std::stoi(config["delay-per-exec"]);
+
+                std::cout << "CPU Numbers: " << numCpu << std::endl;
+                std::cout << "Scheduler Algorithm: " << scheduler << std::endl;
+                std::cout << "Quantum Cycles: " << quantumCycles << std::endl;
+                std::cout << "Batch Process Frequency: " << batchProcessFreq << std::endl;
+                std::cout << "Maximum Instructions: " << minIns << std::endl;
+                std::cout << "Minimum Instructions: " << maxIns << std::endl;
+                std::cout << "Delays: " << delayPerExec << std::endl;
+
+                isInitialized = true; // Use this flag to execute scheduling console commmands
+            }
             });
+
     }
+
     else if (command == "screen") {
         captureAndStoreOutput([]() {
             std::cout << "Screen command recognized. Doing something." << std::endl;
@@ -99,7 +155,7 @@ void MainConsole::process() {
         }
         else {
             captureAndStoreOutput([processName]() {
-                std::cout << "Process <" << processName <<"> not found."<< std::endl;
+                std::cout << "Process <" << processName << "> not found." << std::endl;
                 });
             display();
         }
@@ -118,7 +174,7 @@ void MainConsole::process() {
             std::cout << "Exit command recognized. Preparing to exit." << std::endl;
             });
         ConsoleManager::getInstance()->exitApplication();
-        return;  
+        return;
     }
     else if (command == "history") {
         showHistory();

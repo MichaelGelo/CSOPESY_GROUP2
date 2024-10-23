@@ -17,6 +17,7 @@ public:
     void menu() const;
     void enter() const;
     void color(int n) const;
+    bool isInitialized;
 
     std::vector<std::shared_ptr<Process>> processes;
     int nextPid = 1;
