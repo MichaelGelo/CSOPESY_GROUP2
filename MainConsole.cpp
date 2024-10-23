@@ -22,7 +22,8 @@ void MainConsole::display() {
         // just for aesthetic
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
-            || (cmd.rfind("Generating process utilization report...", 0) == 0)) {
+            || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
+            || (cmd.rfind("Please initialize", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -65,13 +66,19 @@ void MainConsole::process() {
     if (!command.empty()) {
         commandHist.push_back(command);
     }
-
+    if (command == "exit") {
+        captureAndStoreOutput([]() {
+            std::cout << "Exit command recognized. Preparing to exit." << std::endl;
+            });
+        ConsoleManager::getInstance()->exitApplication();
+        return;
+    }
     if (command == "initialize") {
         captureAndStoreOutput([this]() {
             std::cout << "Initialize command recognized. Reading configuration..." << std::endl;
 
             auto config = readConfigFile("config.txt");
-
+            
             if (config.empty()) {
                 std::cout << "No valid configuration found." << std::endl;
             }
@@ -99,9 +106,16 @@ void MainConsole::process() {
                 isInitialized = true; // Use this flag to execute scheduling console commmands
             }
             });
+        display();
 
     }
-
+    if (!isInitialized) {
+        captureAndStoreOutput([]() {
+            std::cout << "Please initialize the cores first by using the 'initialize' command.\n";
+            });
+        display();
+        return;
+    }
     else if (command == "screen") {
         captureAndStoreOutput([]() {
             std::cout << "Screen command recognized. Doing something." << std::endl;
@@ -166,14 +180,6 @@ void MainConsole::process() {
             displayProcessStatus();
             });
         display();
-        return;
-    }
-
-    else if (command == "exit") {
-        captureAndStoreOutput([]() {
-            std::cout << "Exit command recognized. Preparing to exit." << std::endl;
-            });
-        ConsoleManager::getInstance()->exitApplication();
         return;
     }
     else if (command == "history") {
