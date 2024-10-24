@@ -72,7 +72,7 @@ void MainConsole::createProcess(std::string processName){
     std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
     int randomLines = dis(gen);
 
-    auto newScreen = std::make_shared<ScreenConsole>(processName, 1, nextPid, 0, randomLines, processes);
+    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, 0, randomLines, processes);
     ConsoleManager::getInstance()->registerScreen(newScreen);
 }
 
