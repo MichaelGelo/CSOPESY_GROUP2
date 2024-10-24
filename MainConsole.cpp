@@ -66,6 +66,17 @@ std::map<std::string, std::string> readConfigFile(const std::string& filename) {
     return config;
 }
 
+void MainConsole::createProcess(std::string processName){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
+    int randomLines = dis(gen);
+    auto newProcess = std::make_shared<Process>(nextPid++, processName, 1, randomLines);
+    processes.push_back(newProcess);
+
+    auto newScreen = std::make_shared<ScreenConsole>(processName, 1, randomLines);
+    ConsoleManager::getInstance()->registerScreen(newScreen);
+}
 
 
 void MainConsole::process() {
@@ -210,15 +221,7 @@ void MainConsole::process() {
         }
         else {
             // Create process with default core=1 and maxLines=100
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
-            int randomLines = dis(gen);
-            auto newProcess = std::make_shared<Process>(nextPid++, processName, 1, randomLines);
-            processes.push_back(newProcess);
-
-            auto newScreen = std::make_shared<ScreenConsole>(processName, 1, randomLines);
-            ConsoleManager::getInstance()->registerScreen(newScreen);
+            createProcess(processName);
             return;
         }
     }

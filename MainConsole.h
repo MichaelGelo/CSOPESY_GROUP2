@@ -47,6 +47,7 @@ private:
 
     Configuration config;
 
+    void createProcess(std::string processName);
 public:
     MainConsole();
     void onEnabled() override;
