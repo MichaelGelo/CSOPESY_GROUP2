@@ -8,6 +8,7 @@
 ScreenConsole::ScreenConsole(const std::string& processName, int currentLine, int totalLines)
     : AConsole(processName), processName(processName), currentLine(currentLine), totalLines(totalLines)
 {
+
     timestamp = getCurrentTimestamp();
     lastCommand = ""; // Initialize lastCommand
 }

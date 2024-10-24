@@ -23,17 +23,11 @@ bool Process::hasFinished() const {
 }
 
 void Process::executeCommand(std::function<void()> command) {
-    if (state == RUNNING) {
-        // Print 100 lines regardless of maxLines
-        for (int i = 0; i < 100; ++i) {
-            command();
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Sleep
-        }
-        switchState(FINISHED);
-        isFinished = true;
+    if (curLines < maxLines) {
+        curLines++;
     }
     else {
-        std::cout << "Cannot execute command. Process is not in RUNNING state." << std::endl;
+        switchState(FINISHED);
     }
 }
 
@@ -90,18 +84,7 @@ void Process::displayProcessInfo() const {
     }
 }
 
-void Process::run() {
-    switchState(RUNNING);
-    executeCommand([this]() {
-        // Only increment curLines if it is less than maxLines
-        if (curLines < maxLines) {
-            curLines++;
-        }
-        //std::cout << pid << " executed line " + std::to_string(curLines) + " / " + std::to_string(maxLines) + "\n";
-        logPrintCommand("Hello world from " + screenName + "!");
 
-        });
-}
 
 int Process::getPid() const {
     return pid;

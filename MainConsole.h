@@ -20,6 +20,8 @@ private:
     bool menuShown;
     void clear();
     void saveProcessReport() const;
+    std::map<std::string, Process*> processQueue;
+
     // for cpu cycle
     std::unique_ptr<CPUCycle> cpuCycleCounter;
     bool isCPURunning;

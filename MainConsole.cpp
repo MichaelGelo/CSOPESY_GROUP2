@@ -76,6 +76,7 @@ void MainConsole::createProcess(std::string processName){
 
     auto newScreen = std::make_shared<ScreenConsole>(processName, 1, randomLines);
     ConsoleManager::getInstance()->registerScreen(newScreen);
+
 }
 
 
