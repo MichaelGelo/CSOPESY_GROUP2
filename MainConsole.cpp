@@ -10,7 +10,7 @@
 #include <string>
 #include <map> 
 #include "Scheduler.h"
-MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false) {}
+MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false), schedulerInstance(nullptr) {}
 
 void MainConsole::onEnabled() {
     display();
@@ -97,19 +97,17 @@ void MainConsole::process() {
                 int delayPerExec = std::stoi(config["delay-per-exec"]);
 
                 // Create the Scheduler object using the configuration parameters
-                Scheduler schedulerObject(numCpu, scheduler, quantumCycles, batchProcessFreq, minIns, maxIns, delayPerExec);
+                schedulerInstance = std::make_shared<Scheduler>(numCpu, scheduler, quantumCycles, batchProcessFreq, minIns, maxIns, delayPerExec);
 
                 // Optionally, display the scheduler's configuration to verify
-                schedulerObject.displayConfiguration();
-
-                // You can store the object in a member variable or a global variable if needed for future use.
-                // e.g., this->schedulerInstance = schedulerObject;
+                schedulerInstance->displayConfiguration();
 
                 isInitialized = true; // Use this flag to execute scheduling console commands
             }
             });
         display();
     }
+
     else if (!isInitialized) {
         captureAndStoreOutput([]() {
             std::cout << "Please initialize the cores first by using the 'initialize' command.\n";
@@ -145,9 +143,21 @@ void MainConsole::process() {
             });
     }
     else if (command == "scheduler-test") {
-        captureAndStoreOutput([]() {
-            std::cout << "Scheduler test command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([this]() {
+            if (!isInitialized) {
+                std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
+                return;
+            }
+
+            std::cout << "Scheduler test command recognized. Running the test." << std::endl;
+
+            // "schedulerInstance->" ito na 'yung gagamitin mo with anything that has to do with the config.txt values
+            // schedulerInstance->function();
+
+            // Display to check if naka-store na siya or smthn
+            schedulerInstance->displayConfiguration();
             });
+        display();
     }
     else if (command == "scheduler-stop") {
         captureAndStoreOutput([]() {

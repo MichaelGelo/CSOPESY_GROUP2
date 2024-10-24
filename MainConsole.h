@@ -8,6 +8,7 @@
 #include "ScreenConsole.h"
 #include <functional>
 #include "Process.h"
+#include "Scheduler.h"
 class MainConsole : public AConsole {
 public:
     MainConsole();
@@ -18,6 +19,7 @@ public:
     void enter() const;
     void color(int n) const;
     bool isInitialized;
+    std::shared_ptr<Scheduler> schedulerInstance;
 
     std::vector<std::shared_ptr<Process>> processes;
     int nextPid = 1;
