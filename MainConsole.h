@@ -9,6 +9,7 @@
 #include <functional>
 #include "Process.h"
 #include "Scheduler.h"
+#include "CPUCycle.h"
 class MainConsole : public AConsole {
 
 private:
@@ -19,6 +20,9 @@ private:
     bool menuShown;
     void clear();
     void saveProcessReport() const;
+    // for cpu cycle
+    std::unique_ptr<CPUCycle> cpuCycleCounter;
+    bool isCPURunning;
 
     // Add configuration members
     struct Configuration {

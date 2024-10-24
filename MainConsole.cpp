@@ -10,7 +10,7 @@
 #include <string>
 #include <map> 
 #include "Scheduler.h"
-MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false), schedulerInstance(nullptr) {}
+MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitialized(false),schedulerInstance(nullptr),cpuCycleCounter(nullptr),isCPURunning(false) {}
 
 void MainConsole::onEnabled() {
     display();
@@ -69,8 +69,14 @@ void MainConsole::process() {
         commandHist.push_back(command);
     }
     if (command == "exit") {
-        captureAndStoreOutput([]() {
+        captureAndStoreOutput([this]() {
             std::cout << "Exit command recognized. Preparing to exit." << std::endl;
+            if (cpuCycleCounter && isCPURunning) {
+                std::cout << "Stopping CPU cycle counter. Final cycle count: "
+                    << cpuCycleCounter->getCurrentCycle() << std::endl;
+                cpuCycleCounter->stopClock();
+                isCPURunning = false;
+            }
             });
         ConsoleManager::getInstance()->exitApplication();
         return;
@@ -95,6 +101,12 @@ void MainConsole::process() {
                 this->config.minIns = std::stoi(configFile["min-ins"]);
                 this->config.maxIns = std::stoi(configFile["max-ins"]);
                 this->config.delayPerExec = std::stoi(configFile["delay-per-exec"]);
+
+                // Initialize the CPU cycle counter
+                cpuCycleCounter = std::make_unique<CPUCycle>();
+                cpuCycleCounter->startClock();
+                isCPURunning = true;
+                std::cout << "CPU cycle counter started." << std::endl;
 
                 // Create the Scheduler object using the stored configuration
                 schedulerInstance = std::make_shared<Scheduler>(  // Changed to make_shared since schedulerInstance is shared_ptr

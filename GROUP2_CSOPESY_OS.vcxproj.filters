@@ -48,6 +48,12 @@
     <ClCompile Include="IETThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CPUCycle.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUCycle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AConsole.h">

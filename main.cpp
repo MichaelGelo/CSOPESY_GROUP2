@@ -2,6 +2,7 @@
 #include <iostream>
 
 int main() {
+
     ConsoleManager::initialize();
 
     while (ConsoleManager::getInstance()->isRunning()) {
