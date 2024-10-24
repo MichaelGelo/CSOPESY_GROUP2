@@ -9,6 +9,7 @@
 #include <ctime>
 #include <string>
 #include <map> 
+#include "Scheduler.h"
 MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false) {}
 
 void MainConsole::onEnabled() {
@@ -79,15 +80,14 @@ void MainConsole::process() {
             std::cout << "Initialize command recognized. Reading configuration..." << std::endl;
 
             auto config = readConfigFile("config.txt");
-            
+
             if (config.empty()) {
                 std::cout << "No valid configuration found." << std::endl;
             }
             else {
                 std::cout << "Configuration loaded:" << std::endl;
 
-                // Stores the parameters from string to integers.
-
+                // Stores the parameters from string to integers
                 int numCpu = std::stoi(config["num-cpu"]);
                 std::string scheduler = config["scheduler"];
                 int quantumCycles = std::stoi(config["quantum-cycles"]);
@@ -96,19 +96,19 @@ void MainConsole::process() {
                 int maxIns = std::stoi(config["max-ins"]);
                 int delayPerExec = std::stoi(config["delay-per-exec"]);
 
-                std::cout << "CPU Numbers: " << numCpu << std::endl;
-                std::cout << "Scheduler Algorithm: " << scheduler << std::endl;
-                std::cout << "Quantum Cycles: " << quantumCycles << std::endl;
-                std::cout << "Batch Process Frequency: " << batchProcessFreq << std::endl;
-                std::cout << "Maximum Instructions: " << minIns << std::endl;
-                std::cout << "Minimum Instructions: " << maxIns << std::endl;
-                std::cout << "Delays: " << delayPerExec << std::endl;
+                // Create the Scheduler object using the configuration parameters
+                Scheduler schedulerObject(numCpu, scheduler, quantumCycles, batchProcessFreq, minIns, maxIns, delayPerExec);
 
-                isInitialized = true; // Use this flag to execute scheduling console commmands
+                // Optionally, display the scheduler's configuration to verify
+                schedulerObject.displayConfiguration();
+
+                // You can store the object in a member variable or a global variable if needed for future use.
+                // e.g., this->schedulerInstance = schedulerObject;
+
+                isInitialized = true; // Use this flag to execute scheduling console commands
             }
             });
         display();
-
     }
     else if (!isInitialized) {
         captureAndStoreOutput([]() {
