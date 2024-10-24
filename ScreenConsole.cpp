@@ -4,10 +4,14 @@
 #include <iomanip>
 #include <sstream>
 #include "ConsoleManager.h"
+#include "Process.h"
 
-ScreenConsole::ScreenConsole(const std::string& processName, int currentLine, int totalLines)
-    : AConsole(processName), processName(processName), currentLine(currentLine), totalLines(totalLines)
+ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int currentLine, int totalLines, std::vector<std::shared_ptr<Process>>& processes)
+    : AConsole(processName), processName(processName), pid(pid), core(core), currentLine(currentLine), totalLines(totalLines), processes(processes) // Initialize processes here
 {
+    auto newProcess = std::make_shared<Process>(pid, processName, core, totalLines);
+    this->processes.push_back(newProcess);  // Now you're correctly pushing to the member processes
+
     timestamp = getCurrentTimestamp();
     lastCommand = ""; // Initialize lastCommand
 }
@@ -20,7 +24,7 @@ void ScreenConsole::onEnabled() {
 void ScreenConsole::display() {
     system("cls");
     std::cout << "Process: " << processName << std::endl;
-    std::cout << "ID: " << processName << std::endl;
+    std::cout << "ID: " << pid << std::endl;
     std::cout << "\nCurrent Instruction Line: " << currentLine << std::endl;
     std::cout << "Lines of Code: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
@@ -75,7 +79,7 @@ std::string ScreenConsole::getCurrentTimestamp() const {
 
 void ScreenConsole::handleProcessSmi() {
     std::cout << "\nProcess: " << processName << std::endl;
-    std::cout << "ID: " << processName << std::endl;
+    std::cout << "ID: " << pid << std::endl;
 
     if (currentLine >= totalLines) {
         std::cout << "Finished!" << std::endl;
