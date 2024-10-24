@@ -10,6 +10,39 @@
 #include "Process.h"
 #include "Scheduler.h"
 class MainConsole : public AConsole {
+
+private:
+    void captureAndStoreOutput(std::function<void()> func);
+    std::vector<std::string> commandHist;
+
+    void showHistory() const;
+    bool menuShown;
+    void clear();
+    void saveProcessReport() const;
+
+    // Add configuration members
+    struct Configuration {
+        int numCpu;
+        std::string scheduler;
+        int quantumCycles;
+        int batchProcessFreq;
+        int minIns;
+        int maxIns;
+        int delayPerExec;
+
+        // Constructor with default values
+        Configuration() :
+            numCpu(0),
+            scheduler(""),
+            quantumCycles(0),
+            batchProcessFreq(0),
+            minIns(0),
+            maxIns(0),
+            delayPerExec(0) {}
+    };
+
+    Configuration config;
+
 public:
     MainConsole();
     void onEnabled() override;
@@ -24,15 +57,8 @@ public:
     std::vector<std::shared_ptr<Process>> processes;
     int nextPid = 1;
     void displayProcessStatus() const;
+    const Configuration& getConfiguration() const { return config; }
 
-private:
-    void captureAndStoreOutput(std::function<void()> func);
-    std::vector<std::string> commandHist;
-
-    void showHistory() const;
-    bool menuShown;
-    void clear();
-    void saveProcessReport() const;
 };
 
 #endif

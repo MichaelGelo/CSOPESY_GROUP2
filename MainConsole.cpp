@@ -79,30 +79,36 @@ void MainConsole::process() {
         captureAndStoreOutput([this]() {
             std::cout << "Initialize command recognized. Reading configuration..." << std::endl;
 
-            auto config = readConfigFile("config.txt");
+            auto configFile = readConfigFile("config.txt");  // Changed variable name to configFile
 
-            if (config.empty()) {
+            if (configFile.empty()) {
                 std::cout << "No valid configuration found." << std::endl;
             }
             else {
                 std::cout << "Configuration loaded:" << std::endl;
 
-                // Stores the parameters from string to integers
-                int numCpu = std::stoi(config["num-cpu"]);
-                std::string scheduler = config["scheduler"];
-                int quantumCycles = std::stoi(config["quantum-cycles"]);
-                int batchProcessFreq = std::stoi(config["batch-process-freq"]);
-                int minIns = std::stoi(config["min-ins"]);
-                int maxIns = std::stoi(config["max-ins"]);
-                int delayPerExec = std::stoi(config["delay-per-exec"]);
+                // Store values in the config member variable (not local config)
+                this->config.numCpu = std::stoi(configFile["num-cpu"]);
+                this->config.scheduler = configFile["scheduler"];
+                this->config.quantumCycles = std::stoi(configFile["quantum-cycles"]);
+                this->config.batchProcessFreq = std::stoi(configFile["batch-process-freq"]);
+                this->config.minIns = std::stoi(configFile["min-ins"]);
+                this->config.maxIns = std::stoi(configFile["max-ins"]);
+                this->config.delayPerExec = std::stoi(configFile["delay-per-exec"]);
 
-                // Create the Scheduler object using the configuration parameters
-                schedulerInstance = std::make_shared<Scheduler>(numCpu, scheduler, quantumCycles, batchProcessFreq, minIns, maxIns, delayPerExec);
+                // Create the Scheduler object using the stored configuration
+                schedulerInstance = std::make_shared<Scheduler>(  // Changed to make_shared since schedulerInstance is shared_ptr
+                    this->config.numCpu,
+                    this->config.scheduler,
+                    this->config.quantumCycles,
+                    this->config.batchProcessFreq,
+                    this->config.minIns,
+                    this->config.maxIns,
+                    this->config.delayPerExec
+                );
 
-                // Optionally, display the scheduler's configuration to verify
-                schedulerInstance->displayConfiguration();
-
-                isInitialized = true; // Use this flag to execute scheduling console commands
+                schedulerInstance->displayConfiguration();  // Changed schedulerObject to schedulerInstance
+                isInitialized = true;
             }
             });
         display();
