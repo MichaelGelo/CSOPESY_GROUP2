@@ -24,7 +24,7 @@ void MainConsole::display() {
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
             || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
-            || (cmd.rfind("Please initialize", 0) == 0)) {
+            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -74,7 +74,7 @@ void MainConsole::process() {
         ConsoleManager::getInstance()->exitApplication();
         return;
     }
-    if (command == "initialize") {
+    else if (command == "initialize") {
         captureAndStoreOutput([this]() {
             std::cout << "Initialize command recognized. Reading configuration..." << std::endl;
 
@@ -110,7 +110,7 @@ void MainConsole::process() {
         display();
 
     }
-    if (!isInitialized) {
+    else if (!isInitialized) {
         captureAndStoreOutput([]() {
             std::cout << "Please initialize the cores first by using the 'initialize' command.\n";
             });
