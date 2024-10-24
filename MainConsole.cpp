@@ -10,6 +10,13 @@
 #include <string>
 #include <map> 
 #include "Scheduler.h"
+#include <random>
+#include <condition_variable>
+#include <functional>
+#include <iomanip>
+
+
+
 MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitialized(false),schedulerInstance(nullptr),cpuCycleCounter(nullptr),isCPURunning(false) {}
 
 void MainConsole::onEnabled() {
@@ -203,10 +210,14 @@ void MainConsole::process() {
         }
         else {
             // Create process with default core=1 and maxLines=100
-            auto newProcess = std::make_shared<Process>(nextPid++, processName, 1, 100);
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
+            int randomLines = dis(gen);
+            auto newProcess = std::make_shared<Process>(nextPid++, processName, 1, randomLines);
             processes.push_back(newProcess);
 
-            auto newScreen = std::make_shared<ScreenConsole>(processName, 1, 100);
+            auto newScreen = std::make_shared<ScreenConsole>(processName, 1, randomLines);
             ConsoleManager::getInstance()->registerScreen(newScreen);
             return;
         }
