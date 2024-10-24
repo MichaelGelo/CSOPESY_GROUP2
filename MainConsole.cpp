@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "ConsoleManager.h"
 #include "ScreenConsole.h"
+#include "MarqueeConsole.h"
 #include <sstream>
 #include <fstream>
 #include <ctime>
@@ -116,6 +117,28 @@ void MainConsole::process() {
         display();
         return;
     }
+
+    ////////////////// EDIT
+
+    else if (command == "marquee") {
+        captureAndStoreOutput([]() {
+            std::cout << "Marquee command recognized. Launching MarqueeConsole..." << std::endl;
+            });
+
+        MarqueeConsole marqueeApp;
+        marqueeApp.run(); 
+
+        display();
+    }
+
+    else if (command == "nvidia-smi") {
+        captureAndStoreOutput([]() {
+            std::cout << "Command recognized. Doing something." << std::endl;
+            });
+    }
+
+    ////////////////// EDIT
+
     else if (command == "screen") {
         captureAndStoreOutput([]() {
             std::cout << "Screen command recognized. Doing something." << std::endl;
