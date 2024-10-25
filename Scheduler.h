@@ -26,7 +26,14 @@ public:
         batchProcessFreq(batchProcessFreq), minInstructions(minIns),
         maxInstructions(maxIns), delayPerExec(delayExec) {}
 
+    const std::string& getSchedulerAlgorithm() const { return schedulerAlgorithm; }
+    int getQuantumCycles() const { return quantumCycles; }
+    int getMinIns() const { return minInstructions; }
+    int getMaxIns() const { return maxInstructions; }
+    int getNumCpu() const { return numCpu; }
+
     void schedulerTest();
     void displayConfiguration();
     void schedulerStop();
+
 };

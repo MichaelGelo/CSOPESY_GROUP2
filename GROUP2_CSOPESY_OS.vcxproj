@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="AConsole.cpp" />
     <ClCompile Include="ConsoleManager.cpp" />
+    <ClCompile Include="CPUCore.cpp" />
     <ClCompile Include="CPUCycle.cpp" />
     <ClCompile Include="CPUCycle.h" />
     <ClCompile Include="IETThread.cpp" />
@@ -145,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="AConsole.h" />
     <ClInclude Include="ConsoleManager.h" />
+    <ClInclude Include="CPUCore.h" />
     <ClInclude Include="IETThread.h" />
     <ClInclude Include="MainConsole.h" />
     <ClInclude Include="MarqueeConsole.h" />

@@ -4,6 +4,7 @@
 #include "ConsoleManager.h"
 #include "ScreenConsole.h"
 #include "MarqueeConsole.h"
+#include "CPUCore.h"
 #include <sstream>
 #include <fstream>
 #include <ctime>
@@ -14,7 +15,7 @@
 #include <condition_variable>
 #include <functional>
 #include <iomanip>
-
+#include <memory>
 
 
 MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitialized(false),schedulerInstance(nullptr),cpuCycleCounter(nullptr),isCPURunning(false) {}
@@ -22,6 +23,63 @@ MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitiali
 void MainConsole::onEnabled() {
     display();
 }
+
+
+////////////////// THIS IS JUST TO TEST IF PARAMETERS ARE BEING PASSED ----
+void MainConsole::testCpuCore() {
+    if (!isInitialized) {
+        std::cout << "[ERROR] Scheduler is not initialized. Please run the initialize command first." << std::endl;
+        return;
+    }
+
+    std::cout << "[INFO] Testing CpuCore functionality...\n";
+
+    // Step 1: Initialize Scheduler (already done in your `initialize` command)
+    // Assume `schedulerInstance` is already initialized with configuration values.
+
+    // Step 2: Create CpuCore instances using the Scheduler
+    int coreCount = schedulerInstance->getNumCpu();  // Number of CPU cores
+    std::vector<std::shared_ptr<CpuCore>> cpuCores;
+
+    std::cout << "[DEBUG] Creating " << coreCount << " CpuCore instances...\n";
+    
+    for (int i = 0; i < coreCount; ++i) {
+        // Create each CpuCore instance using the shared Scheduler instance
+        auto cpuCore = std::make_shared<CpuCore>(i, schedulerInstance);
+        cpuCores.push_back(cpuCore);
+        std::cout << "[INFO] CpuCore #" << i << " created successfully.\n";
+    }
+
+    // Step 3: Add Processes to the CpuCore
+    // Create and add dummy processes to each CpuCore
+    std::cout << "[DEBUG] Adding processes to CpuCore #0...\n";
+    
+    for (int i = 0; i < 5; ++i) {
+        std::string processName = "TestProcess" + std::to_string(i + 1);
+        int randomLines = 10 + i * 5; // Dummy instruction count for testing
+
+        // Create the process and set it to READY state initially
+        auto process = std::make_shared<Process>(i + 1, processName, 0, randomLines);
+        process->switchState(Process::READY);
+
+        std::cout << "[INFO] Creating process \"" << processName << "\" with " << randomLines << " instructions.\n";
+        
+        // Add to the first core for simplicity (you can distribute among multiple cores)
+        cpuCores[0]->addProcess(process);
+        std::cout << "[INFO] Process \"" << processName << "\" added to CpuCore #0.\n";
+
+        // Store the process for future reference or testing
+        processes.push_back(process);
+    }
+
+    // Step 4: Execute scheduling on the CpuCore
+    std::cout << "[INFO] Executing processes on CpuCore #0...\n";
+    // cpuCores[0]->execute();
+
+    std::cout << "[INFO] CpuCore test completed.\n";
+}
+
+
 
 void MainConsole::display() {
     system("cls");
@@ -170,6 +228,14 @@ void MainConsole::process() {
     }
 
     ////////////////// EDIT
+   ////////////////// THIS IS JUST TO TEST IF PARAMETERS ARE BEING PASSED ----
+    else if (command == "test-cpucore") {
+        captureAndStoreOutput([this]() {
+            testCpuCore();
+            });
+        display();
+    }
+
 
     else if (command == "screen") {
         captureAndStoreOutput([]() {
@@ -289,6 +355,11 @@ void MainConsole::showHistory() const {
     for (size_t i = 0; i < commandHist.size(); ++i) {
         std::cout << i + 1 << ": " << commandHist[i] << std::endl;
     }
+}
+
+
+void MainConsole::clear() {
+    system("cls");
 }
 
 void MainConsole::captureAndStoreOutput(std::function<void()> func) {
