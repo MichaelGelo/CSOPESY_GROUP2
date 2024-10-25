@@ -121,9 +121,8 @@ void MainConsole::process() {
 
                 // Initialize the CPU cycle counter
                 cpuCycleCounter = std::make_unique<CPUCycle>();
-                cpuCycleCounter->startClock();
+                cpuCycleCounter->startClock(config.scheduler, config.delayPerExec, config.numCpu, config.batchProcessFreq);
                 isCPURunning = true;
-                std::cout << "CPU cycle counter started." << std::endl;
 
                 // Create the Scheduler object using the stored configuration
                 schedulerInstance = std::make_shared<Scheduler>(  // Changed to make_shared since schedulerInstance is shared_ptr
