@@ -5,11 +5,13 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "ScreenConsole.h"
+#include <map>           // Corrected inclusion of <map>
 #include <functional>
+#include "ScreenConsole.h"
 #include "Process.h"
 #include "Scheduler.h"
 #include "CPUCycle.h"
+
 class MainConsole : public AConsole {
 
 private:
@@ -18,9 +20,9 @@ private:
 
     void showHistory() const;
     bool menuShown;
-    void clear();
+    void clear();  
     void saveProcessReport() const;
-    std::map<std::string, Process*> processQueue;
+    std::map<std::string, Process*> processQueue;  // Corrected map inclusion
 
     // for cpu cycle
     std::unique_ptr<CPUCycle> cpuCycleCounter;
@@ -50,8 +52,10 @@ private:
     Configuration config;
 
     void createProcess(std::string processName);
+
 public:
     MainConsole();
+    void testCpuCore();
     void onEnabled() override;
     void display() override;
     void process() override;
@@ -65,7 +69,6 @@ public:
     int nextPid = 1;
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
-
 };
 
-#endif
+#endif // MAIN_CONSOLE_H
