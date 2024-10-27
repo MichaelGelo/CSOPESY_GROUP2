@@ -24,6 +24,15 @@ private:
     void saveProcessReport() const;
     std::map<std::string, Process*> processQueue;  // Corrected map inclusion
 
+    std::vector<std::thread> cpuThreads;
+    std::mutex processMutex;
+    std::condition_variable processCV;
+    bool shouldTerminate;
+
+    void cpuThreadFunction(int coreId);
+    void startCPUThreads();
+    void stopCPUThreads();
+
     // for cpu cycle
     std::unique_ptr<CPUCycle> cpuCycleCounter;
     bool isCPURunning;
@@ -69,6 +78,9 @@ public:
     int nextPid = 1;
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
+
+    void startProcessing();
+    void stopProcessing();
 };
 
 #endif // MAIN_CONSOLE_H

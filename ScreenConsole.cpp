@@ -10,6 +10,7 @@ ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, 
     : AConsole(processName), processName(processName), pid(pid), core(core), currentLine(currentLine), totalLines(totalLines), processes(processes) // Initialize processes here
 {
     auto newProcess = std::make_shared<Process>(pid, processName, core, totalLines);
+    newProcess->generateCommands();
     this->processes.push_back(newProcess);  // Now you're correctly pushing to the member processes
 
     timestamp = getCurrentTimestamp();

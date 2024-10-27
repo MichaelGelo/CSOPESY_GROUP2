@@ -5,6 +5,8 @@
 #include <string>
 #include <functional>
 #include <mutex>
+#include <memory>        
+#include "ICommand.h" 
 
 class Process {
 private:
@@ -26,10 +28,12 @@ public:
 
 private:
     ProcessState state;
+    typedef std::vector<std::shared_ptr<ICommand>> CommandList;
+    CommandList commandList;
 
 public:
     Process(int pid, std::string screenName, int core, int maxLines);
-
+    void generateCommands();
     Process(const Process&) = delete;
     Process& operator=(const Process&) = delete;
     void logPrintCommand(const std::string& message);
@@ -65,6 +69,7 @@ public:
     ProcessState getState() const;
     bool hasFinished() const;
     void executeCommand(std::function<void()> command);
+    void getNextCommand(std::function<void()> command);
     void switchState(ProcessState newState);
     void displayProcessInfo() const;
     void run();

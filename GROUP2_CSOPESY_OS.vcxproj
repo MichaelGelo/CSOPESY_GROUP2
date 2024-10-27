@@ -133,6 +133,7 @@
     <ClCompile Include="CPUCore.cpp" />
     <ClCompile Include="CPUCycle.cpp" />
     <ClCompile Include="CPUCycle.h" />
+    <ClCompile Include="ICommand.cpp" />
     <ClCompile Include="IETThread.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainConsole.cpp" />
@@ -147,14 +148,19 @@
     <ClInclude Include="AConsole.h" />
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="CPUCore.h" />
+    <ClInclude Include="ICommand.h" />
     <ClInclude Include="IETThread.h" />
     <ClInclude Include="MainConsole.h" />
     <ClInclude Include="MarqueeConsole.h" />
     <ClInclude Include="MemoryConsole.h" />
     <ClInclude Include="Process.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scheduler.h" />
     <ClInclude Include="SchedulingConsole.h" />
     <ClInclude Include="ScreenConsole.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GROUP2_CSOPESY_OS.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

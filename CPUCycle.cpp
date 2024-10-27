@@ -16,14 +16,14 @@ void CPUCycle::startClock(std::string scheduler, int delayPerExec, int numCpu, i
 
                 if (scheduler == "fcfs") {
                     // Implement your FCFS here
-                    fcfs(scheduler, delayPerExec, numCpu, batchProcessFreq);
+                    //fcfs(scheduler, delayPerExec, numCpu, batchProcessFreq);
                 }
                 else if (scheduler == "rr") {
                     // Implement your RR here
-                    rr(scheduler, delayPerExec, numCpu, batchProcessFreq);
+                    //rr(scheduler, delayPerExec, numCpu, batchProcessFreq);
                 }
                 else {
-                std::cout << "error do something about this";
+                //std::cout << "error do something about this";
                 }
 
                 cycleCount++; // Increment cycle count

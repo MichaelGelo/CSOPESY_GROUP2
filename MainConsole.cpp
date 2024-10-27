@@ -5,6 +5,7 @@
 #include "ScreenConsole.h"
 #include "MarqueeConsole.h"
 #include "CPUCore.h"
+#include "ICommand.h"
 #include <sstream>
 #include <fstream>
 #include <ctime>

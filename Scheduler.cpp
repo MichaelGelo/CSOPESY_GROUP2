@@ -15,7 +15,11 @@ void Scheduler::displayConfiguration() {
 }
 
 void Scheduler::fcfs() {
+    while (true) {
+        for (int i = 0; i < numCpu; i++) {
 
+        }
+}
 }
 
 void Scheduler::rr() {

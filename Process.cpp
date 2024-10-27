@@ -22,8 +22,21 @@ bool Process::hasFinished() const {
     return isFinished;
 }
 
+void Process::generateCommands() {
+    for (int i = 0; i < maxLines; ++i) {
+        auto command = std::make_shared<ICommand>(pid, ICommand::IO);
+
+        // Add the command to the command list
+        commandList.push_back(command);
+    }
+}
+
 void Process::executeCommand(std::function<void()> command) {
+    this->commandList[curLines]->execute();
+}
+void Process::getNextCommand(std::function<void()> command) {
     if (curLines < maxLines) {
+
         curLines++;
     }
     else {
