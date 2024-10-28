@@ -1,24 +1,25 @@
 #pragma once
-#include <atomic>
+
 #include <thread>
 #include <mutex>
-#include <chrono>
+#include <condition_variable>
 
 class CPUCycle {
 public:
-    CPUCycle();
-    ~CPUCycle();
+    CPUCycle();                       
+    ~CPUCycle();                      // Destructor?
 
-    void startClock(std::string scheduler, int delayPerExec, int numCpu, int s);
-    void stopClock();
-    int getCurrentCycle() const;
-    bool isRunning() const;
+    void startClock();               
+    void stopClock();                 
+    int getCurrentCycle() const;     
+
+    std::condition_variable cv;      
 
 private:
-    std::string scheduler;
-    int delayPerExec;
-    std::atomic<int> cycleCount;
-    std::atomic<bool> running;
-    std::thread clockThread;
-    std::mutex mtx;
+    void runCycles();          
+
+    int cycleCount;                  
+    bool running;                   
+    std::thread clockThread;          
+    mutable std::mutex mtx;           
 };

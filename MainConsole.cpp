@@ -5,6 +5,7 @@
 #include "ScreenConsole.h"
 #include "MarqueeConsole.h"
 #include "CPUCore.h"
+#include "CPUCycle.h"
 #include "ICommand.h"
 #include <sstream>
 #include <fstream>
@@ -147,11 +148,9 @@ void MainConsole::process() {
     if (command == "exit") {
         captureAndStoreOutput([this]() {
             std::cout << "Exit command recognized. Preparing to exit." << std::endl;
-            if (cpuCycleCounter && isCPURunning) {
-                std::cout << "Stopping CPU cycle counter. Final cycle count: "
-                    << cpuCycleCounter->getCurrentCycle() << std::endl;
-                cpuCycleCounter->stopClock();
+            if (isCPURunning) {
                 isCPURunning = false;
+                cpuCycle.stopClock();
             }
             });
         ConsoleManager::getInstance()->exitApplication();
@@ -179,8 +178,7 @@ void MainConsole::process() {
                 this->config.delayPerExec = std::stoi(configFile["delay-per-exec"]);
 
                 // Initialize the CPU cycle counter
-                cpuCycleCounter = std::make_unique<CPUCycle>();
-                cpuCycleCounter->startClock(config.scheduler, config.delayPerExec, config.numCpu, config.batchProcessFreq);
+                cpuCycle.startClock();
                 isCPURunning = true;
 
                 // Create the Scheduler object using the stored configuration
@@ -198,6 +196,7 @@ void MainConsole::process() {
                 isInitialized = true;
             }
             });
+       
         display();
     }
 

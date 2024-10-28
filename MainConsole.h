@@ -17,7 +17,7 @@ class MainConsole : public AConsole {
 private:
     void captureAndStoreOutput(std::function<void()> func);
     std::vector<std::string> commandHist;
-
+    
     void showHistory() const;
     bool menuShown;
     void clear();  
@@ -73,7 +73,7 @@ public:
     void color(int n) const;
     bool isInitialized;
     std::shared_ptr<Scheduler> schedulerInstance;
-
+    CPUCycle cpuCycle;
     std::vector<std::shared_ptr<Process>> processes;
     int nextPid = 1;
     void displayProcessStatus() const;
