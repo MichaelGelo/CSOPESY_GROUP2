@@ -35,34 +35,14 @@ CpuCore::CpuCore(int coreNumber, std::shared_ptr<Scheduler> scheduler)
     }
 }
 
-// Add a process to the process queue
-void CpuCore::addProcess(std::shared_ptr<Process> process) {
-    processQueue.push(process);
-}
-
 // Check if there are any processes in the queue
 bool CpuCore::hasProcesses() const {
-    return !processQueue.empty();
+    
 }
 
 // Main method to execute based on scheduling mode
 void CpuCore::execute() {
-    if (processQueue.empty()) {
-        std::cout << "[INFO] Core " << coreNumber << " has no processes to execute." << std::endl;
-        return;
-    }
 
-    std::cout << "[INFO] Core " << coreNumber << " starting execution..." << std::endl;
-
-    // Choose the correct execution strategy
-    if (mode == SchedulingMode::FCFS) {
-        runFCFS();
-    }
-    else if (mode == SchedulingMode::ROUND_ROBIN) {
-        runRoundRobin();
-    }
-
-    std::cout << "[INFO] Core " << coreNumber << " finished all processes." << std::endl;
 }
 
 // Method that executes processes using Round Robin scheduling

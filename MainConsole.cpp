@@ -194,6 +194,8 @@ void MainConsole::process() {
 
                 schedulerInstance->displayConfiguration();  // Changed schedulerObject to schedulerInstance
                 isInitialized = true;
+
+                //run scheduler here if fcfs or rr
             }
             });
        
