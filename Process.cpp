@@ -110,3 +110,11 @@ const std::string& Process::getScreenName() const {
 int Process::getCore() const {
     return core;
 }
+
+int Process::getCurLines() const {
+    return curLines;
+}
+
+int Process::getMaxLines() const {
+    return maxLines;
+}

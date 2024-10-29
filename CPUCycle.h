@@ -13,6 +13,10 @@ public:
     void stopClock();                 
     int getCurrentCycle() const;     
 
+    std::mutex& getMutex() { return mtx; }
+    std::condition_variable& getConditionVariable() { return cv; }
+    bool isRunning() const { return running; }
+
     std::condition_variable cv;      
 
 private:
@@ -22,4 +26,5 @@ private:
     bool running;                   
     std::thread clockThread;          
     mutable std::mutex mtx;           
+
 };

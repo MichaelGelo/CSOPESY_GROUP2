@@ -64,7 +64,6 @@ private:
 
 public:
     MainConsole();
-    void testCpuCore();
     void onEnabled() override;
     void display() override;
     void process() override;

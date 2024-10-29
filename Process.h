@@ -8,6 +8,7 @@
 #include <memory>        
 #include "ICommand.h" 
 
+
 class Process {
 private:
     int pid;
@@ -66,6 +67,8 @@ public:
     int getPid() const;
     const std::string& getScreenName() const;
     int getCore() const;
+    int getCurLines() const;
+    int getMaxLines() const;
     ProcessState getState() const;
     bool hasFinished() const;
     void executeCommand(std::function<void()> command);
