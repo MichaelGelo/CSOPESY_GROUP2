@@ -31,6 +31,13 @@ void Scheduler::initializeCores() {
     }
 }
 
+void Scheduler::addToRQ(std::shared_ptr<Process> process) {
+    std::lock_guard<std::mutex> lock(rqMutex);
+    rq.push(process);
+    rqCondition.notify_all();
+    std::cout << "Process added to ready queue with PID: " << process->getPid() << std::endl;
+}
+
 void Scheduler::fcfs() {
     std::cout << "Scheduler started with First-Come, First-Served (FCFS) algorithm." << std::endl;
     schedulerStatus = true;
@@ -40,7 +47,9 @@ void Scheduler::fcfs() {
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
-        cpuCycle.getConditionVariable().wait(lock, [this] { return !schedulerStatus || cpuCycle.isRunning(); });
+        cpuCycle.getConditionVariable().wait(lock, [this] {
+            return !schedulerStatus || cpuCycle.isRunning() || !rq.empty();
+            });
 
         if (!schedulerStatus) break;
 
@@ -48,25 +57,30 @@ void Scheduler::listenForCycle() {
         // std::cout << "Notification Cycle Count: " << currentCycle << std::endl; // just to check if synchronized
 
 
-        // TODO
-        // - combine fcfs and listenForCycle once done na with rqs
-        // - add processes to ready queue
-        // - access ready queue
-        // [x] synchronized with cpuCycle
-        // [x] can determine if its fcfs or rr
-        // [x] somewhat implemented stuff sa cpucore 
-
-
+        // Process available cores and assign processes from rq
         for (auto& core : cores) {
-            if (!core.getIsBusy() && !rq.empty()) { // check niya if the core is open and if there are processes in the ready queue
-                auto process = std::move(rq.front()); // kuha the next process from the queue
-                rq.pop();
-                core.assignProcess(std::move(process)); // bigay process to core
-                std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
+            if (!core.getIsBusy()) {
+                std::unique_lock<std::mutex> rqLock(rqMutex); 
+                if (!rq.empty()) {
+                    auto process = rq.front();
+                    rq.pop();
+                    rqLock.unlock();  
+
+                    core.assignProcess(process); 
+                    std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
+                }
             }
         }
     }
 }
+
+    // TODO
+    // nvm i won't combine them para easy debug
+    // [x] add processes to ready queue
+    // [x] access ready queue
+    // [x] synchronized with cpuCycle
+    // [x] can determine if its fcfs or rr
+    // [x] somewhat implemented stuff sa cpucore 
 
   // each notification from CPUCycle, check readyQueue
   // check if there's an open cpuCore

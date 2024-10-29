@@ -1,8 +1,8 @@
 #include "CPUCore.h"
 #include <iostream>
 
-void CPUCore::assignProcess(std::unique_ptr<Process> process) {
-    currentProcess = std::move(process);
+void CPUCore::assignProcess(std::shared_ptr<Process> process) {
+    this->currentProcess = process;
     isBusy = true;
 }
 

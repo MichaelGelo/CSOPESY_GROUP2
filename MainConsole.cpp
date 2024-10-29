@@ -69,16 +69,20 @@ std::map<std::string, std::string> readConfigFile(const std::string& filename) {
     return config;
 }
 
-void MainConsole::createProcess(std::string processName){
+void MainConsole::createProcess(std::string processName) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
     int randomLines = dis(gen);
 
-    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, 0, randomLines, processes);
+    // Create ScreenConsole, which in turn creates the Process
+    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, randomLines, processes);
     ConsoleManager::getInstance()->registerScreen(newScreen);
 
+    // Add the internally created Process to the Scheduler
+    schedulerInstance->addToRQ(newScreen->getProcess());
 }
+
 
 
 void MainConsole::process() {

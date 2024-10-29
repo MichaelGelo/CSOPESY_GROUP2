@@ -24,9 +24,12 @@ private:
     bool schedulerStatus = false;
 
     std::vector<CPUCore> cores;
-    std::queue<std::unique_ptr<Process>> rq;
+    std::queue<std::shared_ptr<Process>> rq; 
     std::mutex mtx;
     std::condition_variable cv;
+    std::mutex rqMutex;
+    std::condition_variable rqCondition;
+
 
     void removeQuotes(std::string& str);
     void fcfs();
@@ -67,5 +70,6 @@ public:
     void schedulerTest();
     void displayConfiguration();
     void schedulerStop();
+    void addToRQ(std::shared_ptr<Process> process);
 };
 
