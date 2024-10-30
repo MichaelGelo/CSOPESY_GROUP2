@@ -27,7 +27,7 @@ void Scheduler::initializeCores() {
     std::cout << "Scheduler now initializing cores... " << std::endl;
 
     for (int i = 0; i < numCpu; ++i) {
-        cores.emplace_back(i);  
+        cores.emplace_back(i, quantumCycles); //added the quantumCycles for the RR  
     }
 }
 

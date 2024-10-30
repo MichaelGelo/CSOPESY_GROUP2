@@ -7,9 +7,10 @@ private:
     int coreID;
     bool isBusy;
     std::shared_ptr<Process> currentProcess;
+    int quantumCycles;
 
 public:
-    CPUCore(int id) : coreID(id), isBusy(false) {}
+    CPUCore(int id, int quantumCycles) : coreID(id), quantumCycles(quantumCycles), isBusy(false) {} //added the quantumCycles to the Core for RR
 
     int getCoreID() const { return coreID; }
     bool getIsBusy() const { return isBusy; }
