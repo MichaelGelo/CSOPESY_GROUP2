@@ -4,6 +4,7 @@
 #include "SchedulingConsole.h"
 #include "MemoryConsole.h"
 #include "ScreenConsole.h"
+#include "Design.h"
 #include <iostream>
 ConsoleManager* ConsoleManager::sharedInstance = nullptr;
 
@@ -112,7 +113,7 @@ std::shared_ptr<AConsole> ConsoleManager::getCurrentConsole() const {
 void ConsoleManager::registerScreen(std::shared_ptr<AConsole> screenRef) {
     const std::string& screenName = screenRef->getName(); // Store the name
     if (this->consoleTable.find(screenName) != this->consoleTable.end()) {
-        std::cerr << "Screen name " << screenName << " already exists. Please use a different name." << std::endl;
+        std::cerr<< RED << "Screen name " << screenName << " already exists. Please use a different name." << RESET << std::endl;
         return;
     }
     this->consoleTable[screenName] = screenRef; // Register the screen with its name

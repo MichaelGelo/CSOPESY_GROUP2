@@ -1,4 +1,5 @@
 #include "MemoryConsole.h"
+#include "Design.h"
 #include <iostream>
 
 // CHANGE THIS CODE!!!!!!!
@@ -25,6 +26,6 @@ void MemoryConsole::process() {
        
     }
     else {
-        std::cout << "Unrecognized command: " << command << std::endl;
+        std::cout << RED << "Unrecognized command: " << command << RESET << std::endl;
     }
 }
