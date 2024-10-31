@@ -54,19 +54,22 @@ void Scheduler::listenForCycle() {
         if (!schedulerStatus) break;
 
         int currentCycle = cpuCycle.getCurrentCycle();
-        // std::cout << "Notification Cycle Count: " << currentCycle << std::endl; // just to check if synchronized
 
+        // Sort cores by core ID before assignment to enforce ascending order
+        std::sort(cores.begin(), cores.end(), [](const CPUCore& a, const CPUCore& b) {
+            return a.getCoreID() < b.getCoreID();
+            });
 
         // Process available cores and assign processes from rq
         for (auto& core : cores) {
             if (!core.getIsBusy()) {
-                std::unique_lock<std::mutex> rqLock(rqMutex); 
+                std::unique_lock<std::mutex> rqLock(rqMutex);
                 if (!rq.empty()) {
                     auto process = rq.front();
                     rq.pop();
-                    rqLock.unlock();  
+                    rqLock.unlock();
 
-                    core.assignProcess(process); 
+                    core.assignProcess(process);
                     process->setCore(core.getCoreID());
 
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
