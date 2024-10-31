@@ -148,6 +148,7 @@
     <ClInclude Include="AConsole.h" />
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="CPUCore.h" />
+    <ClInclude Include="Design.h" />
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IETThread.h" />
     <ClInclude Include="MainConsole.h" />

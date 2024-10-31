@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 #include "ConsoleManager.h"
+#include "Design.h"
 #include "Process.h"
 
 ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, std::vector<std::shared_ptr<Process>>& processes)
@@ -50,7 +51,7 @@ void ScreenConsole::process() {
         std::getline(std::cin, command);
 
         if (command.empty()) {
-            std::cout << "Command not recognized: (empty command)" << std::endl;
+            std::cout << RED << "Command not recognized: (empty command)" << RESET << std::endl;
             continue;
         }
 
@@ -64,7 +65,7 @@ void ScreenConsole::process() {
             handleProcessSmi();
         }
         else {
-            std::cout << "Command not recognized: " << command << std::endl;
+            std::cout << RED << "Command not recognized: " << command << RESET << std::endl;
         }
     }
 }

@@ -27,7 +27,7 @@ void Scheduler::initializeCores() {
     std::cout << "Scheduler now initializing cores... " << std::endl;
 
     for (int i = 0; i < numCpu; ++i) {
-        cores.emplace_back(i);  
+        cores.emplace_back(i, quantumCycles); //added the quantumCycles for the RR  
     }
 }
 
@@ -54,19 +54,24 @@ void Scheduler::listenForCycle() {
         if (!schedulerStatus) break;
 
         int currentCycle = cpuCycle.getCurrentCycle();
-        // std::cout << "Notification Cycle Count: " << currentCycle << std::endl; // just to check if synchronized
 
+        // Sort cores by core ID before assignment to enforce ascending order
+        std::sort(cores.begin(), cores.end(), [](const CPUCore& a, const CPUCore& b) {
+            return a.getCoreID() < b.getCoreID();
+            });
 
         // Process available cores and assign processes from rq
         for (auto& core : cores) {
             if (!core.getIsBusy()) {
-                std::unique_lock<std::mutex> rqLock(rqMutex); 
+                std::unique_lock<std::mutex> rqLock(rqMutex);
                 if (!rq.empty()) {
                     auto process = rq.front();
                     rq.pop();
-                    rqLock.unlock();  
+                    rqLock.unlock();
 
-                    core.assignProcess(process); 
+                    core.assignProcess(process);
+                    process->setCore(core.getCoreID());
+
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
                 }
             }
@@ -88,11 +93,63 @@ void Scheduler::listenForCycle() {
 
 
 void Scheduler::rr() {
+    std::cout << "Scheduler started with Round Robin (RR) algorithm." << std::endl;
+    schedulerStatus = true;
 
+    std::thread([this]() {
+        while (schedulerStatus) {
+            std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
+            cpuCycle.getConditionVariable().wait(lock, [this] {
+                return !schedulerStatus || cpuCycle.isRunning() || !rq.empty();
+                });
+
+            if (!schedulerStatus) break;
+
+            for (auto& core : cores) {
+                // handle currently running process
+                if (core.getIsBusy()) {
+                    core.incrementQuantumUsed();
+                    core.checkAndRunProcess();  // run current process
+
+                    // check if quantum reached of process finishes
+                    if (core.getQuantumUsed() >= quantumCycles ||
+                        (core.getCurrentProcess() && core.getCurrentProcess()->hasFinished())) {
+
+                        auto currentProcess = core.getCurrentProcess();
+                        if (currentProcess && !currentProcess->hasFinished()) {
+
+                            // process not finished but quantum expired - preempt it
+                            std::unique_lock<std::mutex> rqLock(rqMutex);
+                            rq.push(currentProcess);
+                            std::cout << "Process " << currentProcess->getPid()
+                                << " preempted from core " << core.getCoreID() << std::endl;
+                        }
+                        core.clearProcess();
+                    }
+                }
+
+                // if core is free, lagay process
+                if (!core.getIsBusy()) {
+                    std::unique_lock<std::mutex> rqLock(rqMutex);
+                    if (!rq.empty()) {
+                        auto process = rq.front();
+                        rq.pop();
+                        rqLock.unlock();
+
+                        core.assignProcess(process);
+                        core.resetQuantumUsed();
+                        process->switchState(Process::RUNNING);
+                        std::cout << "Assigned process " << process->getPid()
+                            << " to core " << core.getCoreID() << std::endl;
+                    }
+                }
+            }
+        }
+        }).detach();
 }
 
 void Scheduler::schedulerTest() {
-
+    
 }
 
 void Scheduler::schedulerStop() {

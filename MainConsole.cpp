@@ -18,7 +18,7 @@
 #include <functional>
 #include <iomanip>
 #include <memory>
-
+#include "Design.h"
 
 MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitialized(false),schedulerInstance(nullptr),cpuCycleCounter(nullptr),isCPURunning(false) {}
 
@@ -35,7 +35,7 @@ void MainConsole::display() {
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
             || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
-            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0)) {
+            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -51,7 +51,7 @@ std::map<std::string, std::string> readConfigFile(const std::string& filename) {
     std::ifstream file(filename);
 
     if (!file.is_open()) {
-        std::cout << "Error: Could not open configuration file: " << filename << std::endl;
+        std::cout << RED << "Error: Could not open configuration file: " << filename << RESET << std::endl;
         return config;
     }
 
@@ -110,7 +110,7 @@ void MainConsole::process() {
             auto configFile = readConfigFile("config.txt");  // Changed variable name to configFile
 
             if (configFile.empty()) {
-                std::cout << "No valid configuration found." << std::endl;
+                std::cout << RED << "No valid configuration found." << RESET << std::endl;
             }
             else {
                 std::cout << "Configuration loaded:" << std::endl;
@@ -150,7 +150,7 @@ void MainConsole::process() {
 
     else if (!isInitialized) {
         captureAndStoreOutput([]() {
-            std::cout << "Please initialize the cores first by using the 'initialize' command.\n";
+            std::cout << RED << "Please initialize the cores first by using the 'initialize' command.\n" << RESET;
             });
         display();
         return;
@@ -184,7 +184,7 @@ void MainConsole::process() {
     if (command == "scheduler-test") {
         captureAndStoreOutput([this]() {
             if (!isInitialized) {
-                std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
+                std::cout << RED << "Scheduler is not initialized. Please run the initialize command first." << RESET << std::endl;
                 return;
             }
             schedulerTest();
@@ -253,7 +253,7 @@ void MainConsole::process() {
     }
     else if (!command.empty()) {
         captureAndStoreOutput([command]() {
-            std::cout << "Command not recognized: " << command << std::endl;
+            std::cout << RED << "Command not recognized: " << command << RESET << std::endl;
             });
         display();
     }
@@ -298,8 +298,8 @@ void MainConsole::runSchedulerTest() {
     }
 }
 void MainConsole::menu() const {
-    color(13);
-    std::cout << R"(
+
+    std::cout << YELLOW << R"(
 ===============================================================
  _______  _______  _______  _______  _______  _______  **   ** 
 |       ||       ||       ||       ||       ||       ||  | |  |
@@ -312,18 +312,15 @@ AGUSTINES    --   DEPASUCAT     --     ESTEBAN     --  PADILLA
 HELLO, WELCOME TO  GROUP 2'S CSOPESY COMMANDLINE!
 TYPE 'exit' TO QUIT
 ===============================================================
-    )" << std::endl;
-    color(7);
+    )" << RESET << std::endl;
 }
 
 void MainConsole::enter() const {
-    color(7);
+    
     std::cout << "Enter a command: ";
 }
 
-void MainConsole::color(int n) const {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), n);
-}
+
 
 void MainConsole::showHistory() const {
     std::cout << "Command History:" << std::endl;
@@ -390,7 +387,7 @@ void MainConsole::displayProcessStatus() const {
 void MainConsole::saveProcessReport() const {
     std::ofstream logFile("csopesy-log.txt");
     if (!logFile) {
-        std::cout << "Error: Could not open log file." << std::endl;
+        std::cout << RED << "Error: Could not open log file." << RESET << std::endl;
         return;
     }
 
