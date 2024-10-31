@@ -46,6 +46,7 @@ void Scheduler::fcfs() {
 
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
+        // Wait for CPU cycles to be available
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -70,19 +71,19 @@ void Scheduler::listenForCycle() {
 
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
 
-                    // Execute each command in the process with microsecond delay per execution
+                    int targetCycle = cpuCycle.getCurrentCycle() + delayPerExec;
+
+                    // Execute each command in the process, waiting for `delayPerExec` cycles
                     while (!process->hasFinished()) {
                         process->executeCommand();
 
-                        // Delay per exec is in multiples of cycleDelay
-                        if (delayPerExec > 0) {
-                            auto delayInMicroseconds = delayPerExec * cpuCycle.getCycleDelay();
-                            auto start = std::chrono::high_resolution_clock::now();
-                            while (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::high_resolution_clock::now() - start).count() < delayInMicroseconds) {
-                                // Busy-wait loop for delay per exec in microseconds
-                            }
-                        }
+                        // Wait until the target cycle is reached
+                        cpuCycle.getConditionVariable().wait(lock, [this, targetCycle] {
+                            return cpuCycle.getCurrentCycle() >= targetCycle;
+                            });
+
+                        // Update the target cycle for the next command
+                        targetCycle = cpuCycle.getCurrentCycle() + delayPerExec;
                     }
 
                     core.clearProcess();
@@ -91,6 +92,8 @@ void Scheduler::listenForCycle() {
         }
     }
 }
+
+
 
     // TODO
     // nvm i won't combine them para easy debug
