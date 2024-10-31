@@ -44,13 +44,11 @@ void Scheduler::fcfs() {
     std::thread(&Scheduler::listenForCycle, this).detach();
 }
 
-#include <chrono>
-
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
-            return !schedulerStatus || cpuCycle.isRunning() || !rq.empty();
+            return !schedulerStatus || !rq.empty();
             });
 
         if (!schedulerStatus) break;
@@ -72,27 +70,25 @@ void Scheduler::listenForCycle() {
 
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
 
-                    // Execute each command in the process with delay per execution
+                    // Execute each command in the process with microsecond delay per execution
                     while (!process->hasFinished()) {
                         process->executeCommand();
 
-                        // Busy-wait loop for delay
                         if (delayPerExec > 0) {
                             auto start = std::chrono::high_resolution_clock::now();
                             while (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::high_resolution_clock::now() - start)
-                                .count() < delayPerExec) {
+                                std::chrono::high_resolution_clock::now() - start).count() < delayPerExec) {
+                                // Busy-wait loop for delay per exec in microseconds
                             }
                         }
                     }
 
-                    core.clearProcess();  
+                    core.clearProcess();
                 }
             }
         }
     }
 }
-
 
 
     // TODO
