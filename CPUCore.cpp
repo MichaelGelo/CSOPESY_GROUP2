@@ -11,12 +11,9 @@ void CPUCore::checkAndRunProcess() {
         std::cout << "Core " << coreID << " running process " << currentProcess->getPid() << std::endl;
 
         // Execute the current command and get the next one
-        currentProcess->executeCommand([]() {
-            // sample line, delete
-            std::cout << "Executing command..." << std::endl;
-            });
+        currentProcess->executeCommand();
+        
         currentProcess->getNextCommand([]() {
-            // sample line, delete
             std::cout << "Getting next command..." << std::endl;
             });
 

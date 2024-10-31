@@ -44,6 +44,8 @@ void Scheduler::fcfs() {
     std::thread(&Scheduler::listenForCycle, this).detach();
 }
 
+#include <chrono>
+
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
@@ -53,14 +55,10 @@ void Scheduler::listenForCycle() {
 
         if (!schedulerStatus) break;
 
-        int currentCycle = cpuCycle.getCurrentCycle();
-
-        // Sort cores by core ID before assignment to enforce ascending order
         std::sort(cores.begin(), cores.end(), [](const CPUCore& a, const CPUCore& b) {
             return a.getCoreID() < b.getCoreID();
             });
 
-        // Process available cores and assign processes from rq
         for (auto& core : cores) {
             if (!core.getIsBusy()) {
                 std::unique_lock<std::mutex> rqLock(rqMutex);
@@ -73,11 +71,29 @@ void Scheduler::listenForCycle() {
                     process->setCore(core.getCoreID());
 
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
+
+                    // Execute each command in the process with delay per execution
+                    while (!process->hasFinished()) {
+                        process->executeCommand();
+
+                        // Busy-wait loop for delay
+                        if (delayPerExec > 0) {
+                            auto start = std::chrono::high_resolution_clock::now();
+                            while (std::chrono::duration_cast<std::chrono::microseconds>(
+                                std::chrono::high_resolution_clock::now() - start)
+                                .count() < delayPerExec) {
+                            }
+                        }
+                    }
+
+                    core.clearProcess();  
                 }
             }
         }
     }
 }
+
+
 
     // TODO
     // nvm i won't combine them para easy debug

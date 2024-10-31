@@ -71,7 +71,7 @@ public:
     int getMaxLines() const;
     ProcessState getState() const;
     bool hasFinished() const;
-    void executeCommand(std::function<void()> command);
+    void executeCommand();
     void getNextCommand(std::function<void()> command);
     void switchState(ProcessState newState);
     void displayProcessInfo() const;

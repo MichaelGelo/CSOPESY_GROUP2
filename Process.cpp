@@ -31,9 +31,21 @@ void Process::generateCommands() {
     }
 }
 
-void Process::executeCommand(std::function<void()> command) {
-    this->commandList[curLines]->execute();
+void Process::executeCommand() {
+    if (curLines < commandList.size()) {
+        // Execute the current command in the list
+        commandList[curLines]->execute();
+        ++curLines;  // Move to the next command
+    }
+
+    // If all commands have been executed, mark the process as finished
+    if (curLines >= maxLines || curLines >= commandList.size()) {
+        isFinished = true;
+        switchState(FINISHED);
+    }
 }
+
+
 void Process::getNextCommand(std::function<void()> command) {
     if (curLines < maxLines) {
 
