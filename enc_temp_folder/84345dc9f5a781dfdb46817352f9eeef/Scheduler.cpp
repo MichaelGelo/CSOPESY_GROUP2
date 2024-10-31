@@ -127,14 +127,6 @@ void Scheduler::rr() {
                     core.incrementQuantumUsed();
                     core.checkAndRunProcess();  // run current process
 
-                    if (delayPerExec > 0) {
-                        auto start = std::chrono::high_resolution_clock::now();
-                        while (std::chrono::duration_cast<std::chrono::microseconds>(
-                            std::chrono::high_resolution_clock::now() - start)
-                            .count() < delayPerExec) {
-                        }
-                    }
-
                     // check if quantum reached of process finishes
                     if (core.getQuantumUsed() >= quantumCycles ||
                         (core.getCurrentProcess() && core.getCurrentProcess()->hasFinished())) {
