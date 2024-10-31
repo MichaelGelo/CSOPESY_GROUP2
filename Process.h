@@ -76,6 +76,7 @@ public:
     void switchState(ProcessState newState);
     void displayProcessInfo() const;
     void run();
+    void setCore(int coreID);
 };
 
 #endif 

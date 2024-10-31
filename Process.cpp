@@ -97,7 +97,9 @@ void Process::displayProcessInfo() const {
     }
 }
 
-
+void Process::setCore(int coreID) {
+   core = coreID;
+}
 
 int Process::getPid() const {
     return pid;

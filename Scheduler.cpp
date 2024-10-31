@@ -67,6 +67,8 @@ void Scheduler::listenForCycle() {
                     rqLock.unlock();  
 
                     core.assignProcess(process); 
+                    process->setCore(core.getCoreID());
+
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
                 }
             }
