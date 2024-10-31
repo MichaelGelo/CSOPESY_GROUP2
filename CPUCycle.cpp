@@ -29,7 +29,7 @@ int CPUCycle::getCurrentCycle() const {
 }
 
 void CPUCycle::setCycleDelay(int delayMicroseconds) {
-    std::lock_guard<std::mutex> lock(mtx); // Protect access to cycleDelay
+    std::lock_guard<std::mutex> lock(mtx); 
     cycleDelay = delayMicroseconds;
 }
 

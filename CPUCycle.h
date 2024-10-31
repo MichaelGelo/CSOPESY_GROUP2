@@ -12,7 +12,7 @@ public:
     void startClock();               
     void stopClock();                 
     int getCurrentCycle() const;     
-    void setCycleDelay(int delay);
+    void setCycleDelay(int delayMicroseconds); 
     int cycleDelay;
 
     std::mutex& getMutex() { return mtx; }
