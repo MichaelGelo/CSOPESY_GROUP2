@@ -181,26 +181,22 @@ void MainConsole::process() {
             std::cout << "Screen command recognized. Doing something." << std::endl;
             });
     }
-    else if (command == "scheduler-test") {
+    if (command == "scheduler-test") {
         captureAndStoreOutput([this]() {
             if (!isInitialized) {
                 std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
                 return;
             }
-
-            std::cout << "Scheduler test command recognized. Running the test." << std::endl;
-
-            // "schedulerInstance->" ito na 'yung gagamitin mo with anything that has to do with the config.txt values
-            // schedulerInstance->function();
-
-            // Display to check if naka-store na siya or smthn
-            schedulerInstance->displayConfiguration();
+            schedulerTest();
             });
-        display();
     }
     else if (command == "scheduler-stop") {
-        captureAndStoreOutput([]() {
-            std::cout << "Scheduler stop command recognized. Doing something." << std::endl;
+        captureAndStoreOutput([this]() {
+        if (!isInitialized) {
+            std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
+            return;
+        }
+        schedulerStop();
             });
     }
     else if (command == "report-util") {
@@ -224,7 +220,9 @@ void MainConsole::process() {
         }
         else {
             // Create process with default core=1 and maxLines=100
+            // Create process with default core=1 and maxLines=100
             createProcess(processName);
+            ConsoleManager::getInstance()->switchConsole(processName);
             return;
         }
     }
@@ -261,6 +259,44 @@ void MainConsole::process() {
     }
 }
 
+void MainConsole::schedulerTest() {
+    if (!isSchedulerTestRunning) {
+        isSchedulerTestRunning = true;
+        testThread = std::thread(&MainConsole::runSchedulerTest, this);
+        testThread.detach();
+    }
+    else {
+        std::cout << "Scheduler test is already running." << std::endl;
+    }
+}
+
+void MainConsole::schedulerStop() {
+    if (isSchedulerTestRunning) {
+        isSchedulerTestRunning = false;
+        std::cout << "Scheduler test stopped." << std::endl;
+    }
+    else {
+        std::cout << "Scheduler test is not running." << std::endl;
+    }
+}
+
+void MainConsole::runSchedulerTest() {
+    while (isSchedulerTestRunning && isCPURunning) {
+        //std::cout << "Scheduler test running..." << std::endl;
+
+        std::unique_lock<std::mutex> lock(cpuCycle.mtx);
+        cpuCycle.cv.wait(lock);
+
+        int currentCycle = cpuCycle.getCurrentCycle();
+        if (currentCycle % config.batchProcessFreq == 0) {
+            std::string processName = "process" + std::to_string(currentCycle);
+            while (ConsoleManager::getInstance()->screenExists(processName)) processName += "X";
+            createProcess(processName);
+            display();
+            //std::cout << "yeyseysey"; for testing
+        }
+    }
+}
 void MainConsole::menu() const {
     color(13);
     std::cout << R"(
@@ -334,7 +370,7 @@ void MainConsole::displayProcessStatus() const {
         std::cout << "There are no active processes.\n";
     }
 
-    std::cout << "\nFinished Processes:\n";
+    std::cout << "\nFinished c:\n";
 
     // Display finished processes (FINISHED state)
     for (const auto& process : processes) {

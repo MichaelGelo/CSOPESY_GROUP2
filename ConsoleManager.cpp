@@ -116,7 +116,7 @@ void ConsoleManager::registerScreen(std::shared_ptr<AConsole> screenRef) {
         return;
     }
     this->consoleTable[screenName] = screenRef; // Register the screen with its name
-    this->switchConsole(screenName); // Switch to the new screen
+    //this->switchConsole(screenName); /removed
 
     this->activeScreens[screenRef->getName()] = std::static_pointer_cast<ScreenConsole>(screenRef);
 

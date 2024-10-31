@@ -33,6 +33,10 @@ private:
     void startCPUThreads();
     void stopCPUThreads();
 
+    bool isSchedulerTestRunning = false;               
+    std::thread testThread;
+    void runSchedulerTest();
+
     // for cpu cycle
     std::unique_ptr<CPUCycle> cpuCycleCounter;
     bool isCPURunning;
@@ -77,9 +81,11 @@ public:
     int nextPid = 1;
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
-
     void startProcessing();
     void stopProcessing();
+
+    void schedulerTest();  
+    void schedulerStop(); 
 };
 
 #endif // MAIN_CONSOLE_H

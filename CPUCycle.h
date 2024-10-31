@@ -16,7 +16,7 @@ public:
     std::mutex& getMutex() { return mtx; }
     std::condition_variable& getConditionVariable() { return cv; }
     bool isRunning() const { return running; }
-
+    mutable std::mutex mtx;
     std::condition_variable cv;      
 
 private:
@@ -25,6 +25,6 @@ private:
     int cycleCount;                  
     bool running;                   
     std::thread clockThread;          
-    mutable std::mutex mtx;           
+               
 
 };
