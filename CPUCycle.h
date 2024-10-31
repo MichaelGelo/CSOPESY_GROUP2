@@ -12,6 +12,8 @@ public:
     void startClock();               
     void stopClock();                 
     int getCurrentCycle() const;     
+    void setCycleDelay(int delayMicroseconds); 
+    int cycleDelay;
 
     std::mutex& getMutex() { return mtx; }
     std::condition_variable& getConditionVariable() { return cv; }

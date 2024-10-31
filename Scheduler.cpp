@@ -44,13 +44,11 @@ void Scheduler::fcfs() {
     std::thread(&Scheduler::listenForCycle, this).detach();
 }
 
-#include <chrono>
-
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
-            return !schedulerStatus || cpuCycle.isRunning() || !rq.empty();
+            return !schedulerStatus || !rq.empty();
             });
 
         if (!schedulerStatus) break;
@@ -72,27 +70,25 @@ void Scheduler::listenForCycle() {
 
                     std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
 
-                    // Execute each command in the process with delay per execution
+                    // Execute each command in the process with microsecond delay per execution
                     while (!process->hasFinished()) {
                         process->executeCommand();
 
-                        // Busy-wait loop for delay
                         if (delayPerExec > 0) {
                             auto start = std::chrono::high_resolution_clock::now();
                             while (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::high_resolution_clock::now() - start)
-                                .count() < delayPerExec) {
+                                std::chrono::high_resolution_clock::now() - start).count() < delayPerExec) {
+                                // Busy-wait loop for delay per exec in microseconds, check if microseconds talaga siyaaaa
                             }
                         }
                     }
 
-                    core.clearProcess();  
+                    core.clearProcess();
                 }
             }
         }
     }
 }
-
 
 
     // TODO
@@ -127,6 +123,14 @@ void Scheduler::rr() {
                     core.incrementQuantumUsed();
                     core.checkAndRunProcess();  // run current process
 
+                    if (delayPerExec > 0) {
+                        auto start = std::chrono::high_resolution_clock::now();
+                        while (std::chrono::duration_cast<std::chrono::microseconds>(
+                            std::chrono::high_resolution_clock::now() - start)
+                            .count() < delayPerExec) {
+                        }
+                    }
+
                     // check if quantum reached of process finishes
                     if (core.getQuantumUsed() >= quantumCycles ||
                         (core.getCurrentProcess() && core.getCurrentProcess()->hasFinished())) {
@@ -137,8 +141,8 @@ void Scheduler::rr() {
                             // process not finished but quantum expired - preempt it
                             std::unique_lock<std::mutex> rqLock(rqMutex);
                             rq.push(currentProcess);
-                            std::cout << "Process " << currentProcess->getPid()
-                                << " preempted from core " << core.getCoreID() << std::endl;
+                            //std::cout << "Process " << currentProcess->getPid()
+                            //     << " preempted from core " << core.getCoreID() << std::endl;
                         }
                         core.clearProcess();
                     }
@@ -155,8 +159,8 @@ void Scheduler::rr() {
                         core.assignProcess(process);
                         core.resetQuantumUsed();
                         process->switchState(Process::RUNNING);
-                        std::cout << "Assigned process " << process->getPid()
-                            << " to core " << core.getCoreID() << std::endl;
+                        //std::cout << "Assigned process " << process->getPid()
+                          //  << " to core " << core.getCoreID() << std::endl;
                     }
                 }
             }

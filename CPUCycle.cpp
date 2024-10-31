@@ -28,6 +28,10 @@ int CPUCycle::getCurrentCycle() const {
     return cycleCount;
 }
 
+void CPUCycle::setCycleDelay(int delayMicroseconds) {
+    std::lock_guard<std::mutex> lock(mtx); 
+    cycleDelay = delayMicroseconds;
+}
 
 // does the cycle things then notifies waiting threads
 // added stuff para synchronized sila ni scheduler
@@ -36,10 +40,11 @@ void CPUCycle::runCycles() {
         {
             std::lock_guard<std::mutex> lock(mtx);
             cycleCount++;
-            // std::cout << "CPUCycle Count: " << cycleCount << std::endl; 
-            cv.notify_all();
+            cv.notify_all(); // Notify Scheduler each cycle increment
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        // Sleep for the specified delay in microseconds
+        std::this_thread::sleep_for(std::chrono::microseconds(cycleDelay));
     }
     std::cout << "runCycles stopped." << std::endl;
 }
