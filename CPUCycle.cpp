@@ -5,8 +5,7 @@
 #include <condition_variable>
 #include <chrono>
 
-CPUCycle::CPUCycle() : cycleCount(0), running(false) {}
-
+CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(10000) {} 
 CPUCycle::~CPUCycle() {
     stopClock();
 }
@@ -31,6 +30,10 @@ int CPUCycle::getCurrentCycle() const {
 void CPUCycle::setCycleDelay(int delayMicroseconds) {
     std::lock_guard<std::mutex> lock(mtx); 
     cycleDelay = delayMicroseconds;
+}
+
+int CPUCycle::getCycleDelay() const {
+    return cycleDelay;
 }
 
 // does the cycle things then notifies waiting threads

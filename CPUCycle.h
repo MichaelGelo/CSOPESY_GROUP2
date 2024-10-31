@@ -12,8 +12,8 @@ public:
     void startClock();               
     void stopClock();                 
     int getCurrentCycle() const;     
-    void setCycleDelay(int delayMicroseconds); 
-    int cycleDelay;
+    void setCycleDelay(int delayMicroseconds);
+    int getCycleDelay() const;
 
     std::mutex& getMutex() { return mtx; }
     std::condition_variable& getConditionVariable() { return cv; }
@@ -26,7 +26,7 @@ private:
 
     int cycleCount;                  
     bool running;                   
-    std::thread clockThread;          
+    std::thread clockThread;        
+    int cycleDelay;
                
-
 };

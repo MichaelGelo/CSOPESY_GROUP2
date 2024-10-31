@@ -74,11 +74,13 @@ void Scheduler::listenForCycle() {
                     while (!process->hasFinished()) {
                         process->executeCommand();
 
+                        // Delay per exec is in multiples of cycleDelay
                         if (delayPerExec > 0) {
+                            auto delayInMicroseconds = delayPerExec * cpuCycle.getCycleDelay();
                             auto start = std::chrono::high_resolution_clock::now();
                             while (std::chrono::duration_cast<std::chrono::microseconds>(
-                                std::chrono::high_resolution_clock::now() - start).count() < delayPerExec) {
-                                // Busy-wait loop for delay per exec in microseconds, check if microseconds talaga siyaaaa
+                                std::chrono::high_resolution_clock::now() - start).count() < delayInMicroseconds) {
+                                // Busy-wait loop for delay per exec in microseconds
                             }
                         }
                     }
@@ -89,7 +91,6 @@ void Scheduler::listenForCycle() {
         }
     }
 }
-
 
     // TODO
     // nvm i won't combine them para easy debug
