@@ -67,7 +67,7 @@ Scheduler::~Scheduler() {
 // Add process to the ready queue
 void Scheduler::addToRQ(std::shared_ptr<Process> process) {
     std::lock_guard<std::mutex> lock(rqMutex);
-    process->setState(Process::READY);
+    process->switchState(Process::RUNNING);
     rq.push(process);
     rqCondition.notify_all();
 }
@@ -101,7 +101,7 @@ void Scheduler::listenForCycle() {
 
                     core->assignProcess(process);
                     process->setCore(core->getCoreID());
-                    process->setState(Process::RUNNING);
+                    process->switchState(Process::RUNNING);
                     core->setIsBusy(true);
                 }
             }

@@ -109,10 +109,6 @@ void Process::displayProcessInfo() const {
     }
 }
 
-void Process::setState(ProcessState newState) {
-    state = newState;
-}
-
 void Process::setCore(int coreID) {
    core = coreID;
 }
