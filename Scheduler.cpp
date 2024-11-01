@@ -1,10 +1,12 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <thread>
 #include "Process.h"
 #include "Scheduler.h"
 #include "CPUCore.h"
 
+// Display scheduler configuration
 void Scheduler::displayConfiguration() {
     std::cout << "Scheduler Configuration:" << std::endl;
     std::cout << "Number of CPUs: " << numCpu << std::endl;
@@ -16,37 +18,71 @@ void Scheduler::displayConfiguration() {
     std::cout << "Delay per Execution: " << delayPerExec << std::endl;
 }
 
+// Remove quotes from a string
 void Scheduler::removeQuotes(std::string& str) {
     if (!str.empty() && str.front() == '"' && str.back() == '"') {
-        str = str.substr(1, str.size() - 2);  
+        str = str.substr(1, str.size() - 2);
     }
 }
 
+// Initialize cores and start threads
 void Scheduler::initializeCores() {
-
-    std::cout << "Scheduler now initializing cores... " << std::endl;
+    std::cout << "Scheduler now initializing cores and starting core threads... " << std::endl;
 
     for (int i = 0; i < numCpu; ++i) {
-        cores.emplace_back(i, quantumCycles); //added the quantumCycles for the RR  
+        // Create a CPU core and pass the Scheduler for access to shared resources
+        cores.push_back(std::make_unique<CPUCore>(i, quantumCycles, delayPerExec, this));
+
+        // Start a dedicated thread for each core's loop
+        coreThreads.emplace_back(&CPUCore::runCoreLoop, cores.back().get());
     }
 }
 
-void Scheduler::addToRQ(std::shared_ptr<Process> process) {
-    std::lock_guard<std::mutex> lock(rqMutex);
-    rq.push(process);
-    rqCondition.notify_all();
-    std::cout << "Process added to ready queue with PID: " << process->getPid() << std::endl;
+// Stop all core threads safely
+void Scheduler::stopAllCores() {
+    for (auto& core : cores) {
+        core->stopCoreLoop();
+    }
+
+    for (auto& thread : coreThreads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
 }
 
+// Destructor to clean up threads
+Scheduler::~Scheduler() {
+    schedulerStop();  
+
+    for (auto& thread : coreThreads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+
+    cpuCycle.stopClock();  
+}
+
+// Add process to the ready queue
+void Scheduler::addToRQ(std::shared_ptr<Process> process) {
+    std::lock_guard<std::mutex> lock(rqMutex);
+    process->setState(Process::READY);
+    rq.push(process);
+    rqCondition.notify_all();
+}
+
+// Implement FCFS scheduling
 void Scheduler::fcfs() {
     std::cout << "Scheduler started with First-Come, First-Served (FCFS) algorithm." << std::endl;
     schedulerStatus = true;
     std::thread(&Scheduler::listenForCycle, this).detach();
 }
 
+// Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
-        // Wait for CPU cycles to be available
+        // Wait for CPU cycles to be available and check for free cores
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -54,39 +90,19 @@ void Scheduler::listenForCycle() {
 
         if (!schedulerStatus) break;
 
-        std::sort(cores.begin(), cores.end(), [](const CPUCore& a, const CPUCore& b) {
-            return a.getCoreID() < b.getCoreID();
-            });
-
         for (auto& core : cores) {
-            if (!core.getIsBusy()) {
+            // Check if the core is not busy
+            if (!core->getIsBusy()) {
                 std::unique_lock<std::mutex> rqLock(rqMutex);
                 if (!rq.empty()) {
                     auto process = rq.front();
                     rq.pop();
                     rqLock.unlock();
 
-                    core.assignProcess(process);
-                    process->setCore(core.getCoreID());
-
-                    std::cout << "Assigned process to core " << core.getCoreID() << std::endl;
-
-                    int targetCycle = cpuCycle.getCurrentCycle() + delayPerExec;
-
-                    // Execute each command in the process, waiting for `delayPerExec` cycles
-                    while (!process->hasFinished()) {
-                        process->executeCommand();
-
-                        // Wait until the target cycle is reached
-                        cpuCycle.getConditionVariable().wait(lock, [this, targetCycle] {
-                            return cpuCycle.getCurrentCycle() >= targetCycle;
-                            });
-
-                        // Update the target cycle for the next command
-                        targetCycle = cpuCycle.getCurrentCycle() + delayPerExec;
-                    }
-
-                    core.clearProcess();
+                    core->assignProcess(process);
+                    process->setCore(core->getCoreID());
+                    process->setState(Process::RUNNING);
+                    core->setIsBusy(true);
                 }
             }
         }
@@ -94,20 +110,7 @@ void Scheduler::listenForCycle() {
 }
 
 
-
-    // TODO
-    // nvm i won't combine them para easy debug
-    // [x] add processes to ready queue
-    // [x] access ready queue
-    // [x] synchronized with cpuCycle
-    // [x] can determine if its fcfs or rr
-    // [x] somewhat implemented stuff sa cpucore 
-
-  // each notification from CPUCycle, check readyQueue
-  // check if there's an open cpuCore
-  // if yes, put the process in that free cpuCore
-
-
+// Implement Round Robin (RR) scheduling
 void Scheduler::rr() {
     std::cout << "Scheduler started with Round Robin (RR) algorithm." << std::endl;
     schedulerStatus = true;
@@ -122,49 +125,39 @@ void Scheduler::rr() {
             if (!schedulerStatus) break;
 
             for (auto& core : cores) {
-                // handle currently running process
-                if (core.getIsBusy()) {
-                    core.incrementQuantumUsed();
-                    core.checkAndRunProcess();  // run current process
+                // Handle the currently running process
+                if (core->getIsBusy()) {
+                    core->incrementQuantumUsed();
+                    core->checkAndRunProcess();
 
                     if (delayPerExec > 0) {
-                        auto start = std::chrono::high_resolution_clock::now();
-                        while (std::chrono::duration_cast<std::chrono::microseconds>(
-                            std::chrono::high_resolution_clock::now() - start)
-                            .count() < delayPerExec) {
-                        }
+                        std::this_thread::sleep_for(std::chrono::microseconds(delayPerExec));
                     }
 
-                    // check if quantum reached of process finishes
-                    if (core.getQuantumUsed() >= quantumCycles ||
-                        (core.getCurrentProcess() && core.getCurrentProcess()->hasFinished())) {
+                    // Check if quantum is exhausted or process has finished
+                    if (core->getQuantumUsed() >= quantumCycles ||
+                        (core->getCurrentProcess() && core->getCurrentProcess()->hasFinished())) {
 
-                        auto currentProcess = core.getCurrentProcess();
+                        auto currentProcess = core->getCurrentProcess();
                         if (currentProcess && !currentProcess->hasFinished()) {
-
-                            // process not finished but quantum expired - preempt it
                             std::unique_lock<std::mutex> rqLock(rqMutex);
                             rq.push(currentProcess);
-                            //std::cout << "Process " << currentProcess->getPid()
-                            //     << " preempted from core " << core.getCoreID() << std::endl;
                         }
-                        core.clearProcess();
+                        core->clearProcess();
                     }
                 }
 
-                // if core is free, lagay process
-                if (!core.getIsBusy()) {
+                // If core is free, assign a new process from the ready queue
+                if (!core->getIsBusy()) {
                     std::unique_lock<std::mutex> rqLock(rqMutex);
                     if (!rq.empty()) {
                         auto process = rq.front();
                         rq.pop();
                         rqLock.unlock();
 
-                        core.assignProcess(process);
-                        core.resetQuantumUsed();
+                        core->assignProcess(process);
+                        core->resetQuantumUsed();
                         process->switchState(Process::RUNNING);
-                        //std::cout << "Assigned process " << process->getPid()
-                          //  << " to core " << core.getCoreID() << std::endl;
                     }
                 }
             }
@@ -172,19 +165,13 @@ void Scheduler::rr() {
         }).detach();
 }
 
-void Scheduler::schedulerTest() {
-    
-}
-
+// Stop the scheduler
 void Scheduler::schedulerStop() {
-    schedulerStatus = false;
-    cv.notify_all();
+    schedulerStatus = false; 
+    cv.notify_all();  
+
+    for (auto& core : cores) {
+        core->stopCoreLoop();
+    }
+    cpuCycle.getConditionVariable().notify_all();
 }
-
-
-//for cpuCore
-//check if may laman siya na process
-//if notify, run si Process executeCommand() and getNextCommand()
-//if current lines == max lines or done na ung process, tanggalin na
-
-// quantum ni kai for round robin

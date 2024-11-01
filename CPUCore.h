@@ -1,6 +1,12 @@
 #pragma once
 #include <memory>
+#include <atomic>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 #include "Process.h"
+
+class Scheduler; // to access rq 
 
 class CPUCore {
 private:
@@ -8,12 +14,15 @@ private:
     bool isBusy;
     std::shared_ptr<Process> currentProcess;
     int quantumCycles;
-
-    int quantumUsed; // for rr
+    int quantumUsed;
+    int delayPerExec;
+    std::atomic<bool> running;
+    Scheduler* scheduler; 
 
 public:
-    CPUCore(int id, int quantumCycles)
-        : coreID(id), quantumCycles(quantumCycles), isBusy(false), quantumUsed(0) {}
+    CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler)
+        : coreID(id), quantumCycles(quantumCycles), delayPerExec(delayPerExec), quantumUsed(0),
+        isBusy(false), running(true), scheduler(scheduler) {}
 
     int getCoreID() const { return coreID; }
     bool getIsBusy() const { return isBusy; }
@@ -23,14 +32,15 @@ public:
     void checkAndRunProcess();
     void removeProcessIfDone();
 
-    //for rr
-    int getQuantumUsed() const { return quantumUsed; }
+    // rr methods
     void resetQuantumUsed() { quantumUsed = 0; }
     void incrementQuantumUsed() { quantumUsed++; }
+    int getQuantumUsed() const { return quantumUsed; }
+
     std::shared_ptr<Process> getCurrentProcess() const { return currentProcess; }
-    void clearProcess() {
-        currentProcess.reset();
-        isBusy = false;
-        resetQuantumUsed();
-    }
+    void clearProcess();
+
+    void waitForCycleAndExecute(std::condition_variable& cycleCondition, std::mutex& cycleMutex, int delayPerExec);
+    void runCoreLoop();
+    void stopCoreLoop();
 };

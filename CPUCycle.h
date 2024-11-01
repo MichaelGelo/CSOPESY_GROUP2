@@ -24,7 +24,7 @@ public:
 private:
     void runCycles();          
 
-    int cycleCount;                  
+    std::atomic<int> cycleCount;
     bool running;                   
     std::thread clockThread;        
     int cycleDelay;

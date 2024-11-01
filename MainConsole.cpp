@@ -20,7 +20,7 @@
 #include <memory>
 #include "Design.h"
 
-MainConsole::MainConsole(): AConsole("MAIN_CONSOLE"),menuShown(false),isInitialized(false),schedulerInstance(nullptr),cpuCycleCounter(nullptr),isCPURunning(false) {}
+MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isInitialized(false), schedulerInstance(nullptr), cpuCycleCounter(nullptr), isCPURunning(false) {}
 
 void MainConsole::onEnabled() {
     display();
@@ -144,7 +144,7 @@ void MainConsole::process() {
                 isInitialized = true;
             }
             });
-       
+
         display();
     }
 
@@ -164,7 +164,7 @@ void MainConsole::process() {
             });
 
         MarqueeConsole marqueeApp;
-        marqueeApp.run(); 
+        marqueeApp.run();
 
         display();
     }
@@ -192,11 +192,11 @@ void MainConsole::process() {
     }
     else if (command == "scheduler-stop") {
         captureAndStoreOutput([this]() {
-        if (!isInitialized) {
-            std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
-            return;
-        }
-        schedulerStop();
+            if (!isInitialized) {
+                std::cout << "Scheduler is not initialized. Please run the initialize command first." << std::endl;
+                return;
+            }
+            schedulerStop();
             });
     }
     else if (command == "report-util") {
@@ -316,7 +316,7 @@ TYPE 'exit' TO QUIT
 }
 
 void MainConsole::enter() const {
-    
+
     std::cout << "Enter a command: ";
 }
 
@@ -357,7 +357,7 @@ void MainConsole::displayProcessStatus() const {
     // Display running processes (READY, RUNNING, WAITING states)
     for (const auto& process : processes) {
         Process::ProcessState state = process->getState();
-        if (state == Process::READY || state == Process::RUNNING || state == Process::WAITING) {
+        if (state == Process::RUNNING) {
             process->displayProcessInfo();
             hasRunningProcess = true;
         }

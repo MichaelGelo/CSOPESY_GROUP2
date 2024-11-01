@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <memory>
 
 class Scheduler {
 private:
@@ -21,28 +22,31 @@ private:
     int minInstructions;
     int maxInstructions;
     int delayPerExec;
-    bool schedulerStatus = false;
+    std::atomic<bool> schedulerStatus = false;
 
-    std::vector<CPUCore> cores;
-    std::queue<std::shared_ptr<Process>> rq; 
-    std::mutex mtx;
-    std::condition_variable cv;
-    std::mutex rqMutex;
-    std::condition_variable rqCondition;
+    std::vector<std::unique_ptr<CPUCore>> cores;  // Use unique_ptr to manage CPUCore objects
+    std::vector<std::thread> coreThreads;         // Threads for each core
+    std::queue<std::shared_ptr<Process>> rq;      // Ready queue
+    std::mutex mtx;                               // General mutex
+    std::condition_variable cv;                   // Condition variable for scheduler
+    std::mutex rqMutex;                           // Mutex for ready queue
+    std::condition_variable rqCondition;          // Condition variable for ready queue
 
-
+    // Private helper methods
+    void initializeCores();                       // Initializes CPU cores and threads
     void removeQuotes(std::string& str);
-    void fcfs();
-    void rr();
-    void initializeCores();
-    void listenForCycle(); 
+    void fcfs();                                  // Implements First-Come, First-Served algorithm
+    void rr();                                    // Implements Round Robin algorithm
+    void listenForCycle();                        // Helper function to manage cycle-based scheduling
+    void stopAllCores();                          // Stops all cores and joins threads
 
 public:
+    // Constructor
     Scheduler(CPUCycle& cpuCycle, int numCpu, const std::string& scheduler, int quantumCycles,
         int batchProcessFreq, int minIns, int maxIns, int delayExec)
         : cpuCycle(cpuCycle), numCpu(numCpu), schedulerAlgorithm(scheduler), quantumCycles(quantumCycles),
         batchProcessFreq(batchProcessFreq), minInstructions(minIns), maxInstructions(maxIns),
-        delayPerExec(delayExec) { // added cpuCycle para synchronized
+        delayPerExec(delayExec) {
 
         initializeCores();
         removeQuotes(schedulerAlgorithm);
@@ -60,16 +64,18 @@ public:
         }
     }
 
+    ~Scheduler(); 
 
     const std::string& getSchedulerAlgorithm() const { return schedulerAlgorithm; }
     int getQuantumCycles() const { return quantumCycles; }
     int getMinIns() const { return minInstructions; }
     int getMaxIns() const { return maxInstructions; }
     int getNumCpu() const { return numCpu; }
+    CPUCycle& getCpuCycle() { return cpuCycle; }
+    bool isRoundRobin() const { return schedulerAlgorithm == "rr"; }
 
-    void schedulerTest();
-    void displayConfiguration();
-    void schedulerStop();
-    void addToRQ(std::shared_ptr<Process> process);
+    void schedulerTest();                           
+    void displayConfiguration();                    
+    void schedulerStop();                           
+    void addToRQ(std::shared_ptr<Process> process);  
 };
-

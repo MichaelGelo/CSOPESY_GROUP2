@@ -1,22 +1,18 @@
 #include "CPUCore.h"
+#include "Scheduler.h"
 #include <iostream>
+#include <chrono>
 
 void CPUCore::assignProcess(std::shared_ptr<Process> process) {
-    this->currentProcess = process;
+    currentProcess = process;
     isBusy = true;
+    quantumUsed = 0; // Reset quantum usage when a new process is assigned
 }
 
 void CPUCore::checkAndRunProcess() {
-    if (currentProcess) {  // check if there's a process assigned to this core
-        std::cout << "Core " << coreID << " running process " << currentProcess->getPid() << std::endl;
-
-        // Execute the current command and get the next one
+    if (currentProcess) {
         currentProcess->executeCommand();
-        
-        currentProcess->getNextCommand([]() {
-            std::cout << "Getting next command..." << std::endl;
-            });
-
+        currentProcess->getNextCommand([]() {});
         removeProcessIfDone();
     }
     else {
@@ -25,11 +21,74 @@ void CPUCore::checkAndRunProcess() {
 }
 
 void CPUCore::removeProcessIfDone() {
-    if (currentProcess && (currentProcess->hasFinished() || currentProcess->getCurLines() >= currentProcess->getMaxLines())) {
-        std::cout << "Process " << currentProcess->getPid() << " has completed on core " << coreID << "." << std::endl;
+    if (currentProcess && (currentProcess->hasFinished() ||
+        (scheduler->isRoundRobin() && quantumUsed >= quantumCycles))) {
 
-        currentProcess.reset();  // remove the process
-        isBusy = false;         
+        if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
+            scheduler->addToRQ(currentProcess);
+        }
+
+        clearProcess();  // Clear the core for the next process
     }
 }
 
+
+void CPUCore::clearProcess() {
+    currentProcess.reset();
+    isBusy = false;
+    quantumUsed = 0;
+}
+
+void CPUCore::waitForCycleAndExecute(std::condition_variable& cycleCondition, std::mutex& cycleMutex, int delayPerExec) {
+    while (running) {
+        if (!isBusy) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Wait if core is idle
+            continue;
+        }
+
+        // Wait until delayPerExec cycles have passed in CPUCycle
+        int targetCycle = scheduler->getCpuCycle().getCurrentCycle() + delayPerExec;
+
+        {
+            std::unique_lock<std::mutex> lock(cycleMutex);
+            cycleCondition.wait(lock, [&]() {
+                return scheduler->getCpuCycle().getCurrentCycle() >= targetCycle || !running;
+                });
+        }
+
+        if (!running) break; 
+
+        checkAndRunProcess();
+
+        if (scheduler->isRoundRobin()) {
+            incrementQuantumUsed();
+        }
+
+        if (currentProcess && (currentProcess->hasFinished() ||
+            (scheduler->isRoundRobin() && quantumUsed >= quantumCycles))) {
+            scheduler->addToRQ(currentProcess); 
+            clearProcess();
+        }
+    }
+}
+
+
+void CPUCore::runCoreLoop() {
+    while (running) {
+        if (isBusy && currentProcess) {
+            waitForCycleAndExecute(
+                scheduler->getCpuCycle().getConditionVariable(),
+                scheduler->getCpuCycle().getMutex(),
+                delayPerExec
+            );
+        }
+        else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+}
+
+void CPUCore::stopCoreLoop() {
+    running = false; 
+    scheduler->getCpuCycle().getConditionVariable().notify_all(); 
+}
