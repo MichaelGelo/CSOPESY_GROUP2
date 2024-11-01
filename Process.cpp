@@ -132,3 +132,7 @@ int Process::getCurLines() const {
 int Process::getMaxLines() const {
     return maxLines;
 }
+
+int Process::getRemainingInstructions() const {
+    return maxLines - curLines;
+}

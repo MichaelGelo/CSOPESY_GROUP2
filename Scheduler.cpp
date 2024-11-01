@@ -67,7 +67,12 @@ Scheduler::~Scheduler() {
 // Add process to the ready queue
 void Scheduler::addToRQ(std::shared_ptr<Process> process) {
     std::lock_guard<std::mutex> lock(rqMutex);
-    process->switchState(Process::RUNNING);
+    if (schedulerAlgorithm == "fcfs") {
+        process->switchState(Process::RUNNING);
+    }
+    if (schedulerAlgorithm == "rr") {
+        process->switchState(Process::READY);
+    }
     rq.push(process);
     rqCondition.notify_all();
 }
@@ -109,9 +114,20 @@ void Scheduler::listenForCycle() {
     }
 }
 
+// Stop the scheduler
+void Scheduler::schedulerStop() {
+    schedulerStatus = false;
+    cv.notify_all();
+
+    for (auto& core : cores) {
+        core->stopCoreLoop();
+    }
+    cpuCycle.getConditionVariable().notify_all();
+}
+
 
 // Implement Round Robin (RR) scheduling
-void Scheduler::rr() {
+/*void Scheduler::rr() {
     std::cout << "Scheduler started with Round Robin (RR) algorithm." << std::endl;
     schedulerStatus = true;
 
@@ -164,14 +180,58 @@ void Scheduler::rr() {
         }
         }).detach();
 }
+*/
 
-// Stop the scheduler
-void Scheduler::schedulerStop() {
-    schedulerStatus = false; 
-    cv.notify_all();  
+void Scheduler::rr() {
+    std::cout << "Scheduler started with Round Robin algorithm." << std::endl;
+    schedulerStatus = true;
 
-    for (auto& core : cores) {
-        core->stopCoreLoop();
-    }
-    cpuCycle.getConditionVariable().notify_all();
+    // Start the cycle listener thread specifically for Round Robin
+    std::thread(&Scheduler::listenForCycleRR, this).detach();
 }
+
+void Scheduler::listenForCycleRR() {
+    while (schedulerStatus) {
+        std::unique_lock<std::mutex> lock(rqMutex);
+
+        // Wait until there are processes or scheduler is stopped
+        rqCondition.wait(lock, [this] {
+            return !schedulerStatus || !rq.empty();
+            });
+
+        if (!schedulerStatus) break;
+
+        // Check for available cores
+        for (auto& core : cores) {
+            if (!core->getIsBusy() && !rq.empty()) {
+                auto process = rq.front();
+                rq.pop();
+                lock.unlock();
+
+                // Assign process to core
+                core->assignProcess(process);
+                process->setCore(core->getCoreID());
+                process->switchState(Process::RUNNING);
+                core->setIsBusy(true);
+
+                // Requeue the process if it hasn't completed
+                /*std::thread([this, process, &core]() {
+                    // Wait for the process to complete its time quantum
+                    std::this_thread::sleep_for(std::chrono::milliseconds(quantumCycles));
+
+                    // If process is not complete, move back to queue
+                    if (process->getRemainingInstructions() > 0) {
+                        process->switchState(Process::WAITING);
+                        std::lock_guard<std::mutex> requeueLock(rqMutex);
+                        rq.push(process);
+                        core->setIsBusy(false);
+                        rqCondition.notify_all();
+                    }
+                */
+                break; // Assign to one core at a time
+            }
+        }
+    }
+}
+
+

@@ -69,6 +69,7 @@ public:
     int getCore() const;
     int getCurLines() const;
     int getMaxLines() const;
+    int getRemainingInstructions() const;
     ProcessState getState() const;
     bool hasFinished() const;
     void executeCommand();
@@ -77,5 +78,6 @@ public:
     void displayProcessInfo() const;
     void run();
     void setCore(int coreID);};
+    
 
 #endif 

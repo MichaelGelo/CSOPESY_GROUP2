@@ -32,6 +32,12 @@ public:
     void checkAndRunProcess();
     void removeProcessIfDone();
 
+    //
+    bool isQuantumExpired() const {
+        return quantumUsed >= quantumCycles;
+    }
+
+
     // rr methods
     void resetQuantumUsed() { quantumUsed = 0; }
     void incrementQuantumUsed() { quantumUsed++; }

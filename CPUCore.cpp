@@ -13,6 +13,7 @@ void CPUCore::checkAndRunProcess() {
     if (currentProcess) {
         currentProcess->executeCommand();
         currentProcess->getNextCommand([]() {});
+        incrementQuantumUsed(); //added last night
         removeProcessIfDone();
     }
     else {
@@ -21,7 +22,7 @@ void CPUCore::checkAndRunProcess() {
 }
 
 void CPUCore::removeProcessIfDone() {
-    if (currentProcess && (currentProcess->hasFinished() ||
+    /*if (currentProcess && (currentProcess->hasFinished() ||
         (scheduler->isRoundRobin() && quantumUsed >= quantumCycles))) {
 
         if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
@@ -29,6 +30,17 @@ void CPUCore::removeProcessIfDone() {
         }
 
         clearProcess();  // Clear the core for the next process
+    }*/
+    if (currentProcess) {
+        if (currentProcess->hasFinished() ||
+            (scheduler->isRoundRobin() && isQuantumExpired())) {
+
+            if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
+                currentProcess->switchState(Process::READY);
+                scheduler->addToRQ(currentProcess);
+            }
+            clearProcess();
+        }
     }
 }
 
@@ -36,7 +48,7 @@ void CPUCore::removeProcessIfDone() {
 void CPUCore::clearProcess() {
     currentProcess.reset();
     isBusy = false;
-    quantumUsed = 0;
+    resetQuantumUsed();
 }
 
 void CPUCore::waitForCycleAndExecute(std::condition_variable& cycleCondition, std::mutex& cycleMutex, int delayPerExec) {
@@ -61,7 +73,14 @@ void CPUCore::waitForCycleAndExecute(std::condition_variable& cycleCondition, st
         checkAndRunProcess();
 
         if (scheduler->isRoundRobin()) {
-            incrementQuantumUsed();
+            //incrementQuantumUsed();
+            if (currentProcess && isQuantumExpired()) {
+                if (!currentProcess->hasFinished()) {
+                    currentProcess->switchState(Process::WAITING);
+                    scheduler->addToRQ(currentProcess);
+                }
+                clearProcess();
+            }
         }
 
         if (currentProcess && (currentProcess->hasFinished() ||

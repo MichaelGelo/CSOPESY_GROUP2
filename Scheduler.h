@@ -38,6 +38,7 @@ private:
     void fcfs();                                  // Implements First-Come, First-Served algorithm
     void rr();                                    // Implements Round Robin algorithm
     void listenForCycle();                        // Helper function to manage cycle-based scheduling
+    void listenForCycleRR();
     void stopAllCores();                          // Stops all cores and joins threads
 
 public:
