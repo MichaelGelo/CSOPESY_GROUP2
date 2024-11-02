@@ -42,6 +42,13 @@ void Process::executeCommand() {
         isFinished = true;
         switchState(FINISHED);
     }
+
+    time_t now = time(0);
+    tm localtm;
+    localtime_s(&localtm, &now);
+    char timeBuffer[50];
+    strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
+    finishedTime = timeBuffer;
 }
 
 
@@ -76,14 +83,9 @@ void Process::logPrintCommand(const std::string& message) {
 }
 
 void Process::displayProcessInfo() const {
+    std::ostringstream timeStream;
     if (isFinished) {
-        time_t now = time(0);
-        tm localtm;
-        localtime_s(&localtm, &now);
-        char timeBuffer[50];
-        strftime(timeBuffer, sizeof(timeBuffer), "(%m/%d/%Y %I:%M:%S %p)", &localtm);
-        std::ostringstream timeStream;
-        timeStream << timeBuffer;
+        timeStream << finishedTime;
 
         std::cout << std::left << std::setw(10) << screenName  // Set width for name
             << "  " << std::setw(28) << timeStream.str()       // Set width for timestamp

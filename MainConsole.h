@@ -12,6 +12,7 @@
 #include "Scheduler.h"
 #include "CPUCycle.h"
 
+
 class MainConsole : public AConsole {
 
 private:
@@ -66,6 +67,8 @@ private:
 
     void createProcess(std::string processName);
 
+    //report util
+    std::vector<std::string> screenListHist;
 public:
     MainConsole();
     void onEnabled() override;

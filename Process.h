@@ -18,6 +18,8 @@ private:
     int curLines;
     bool isFinished;
     mutable std::mutex mutex;
+
+    std::string finishedTime;
     
 public:
     enum ProcessState {

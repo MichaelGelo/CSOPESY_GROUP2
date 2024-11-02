@@ -254,6 +254,9 @@ void MainConsole::process() {
         captureAndStoreOutput([this]() {
             displayProcessStatus();
             });
+        if (!commandHist.empty()) {
+            screenListHist.push_back(commandHist.back());
+        }
         display();
         return;
     }
@@ -413,30 +416,52 @@ void MainConsole::displayProcessStatus() const {
     std::cout << "-----------------------------------------------------------------\n";
 }
 
+
+//void MainConsole::saveProcessReport() const {
+//    std::ofstream logFile("csopesy-log.txt");
+//    if (!logFile) {
+//        std::cout << RED << "Error: Could not open log file." << RESET << std::endl;
+//        return;
+//    }
+//
+//    // Get current time for the log entry
+//    time_t now = time(0);
+//    char* dt = ctime(&now);
+//
+//    // Write header with timestamp
+//    logFile << "\n=================================================================\n";
+//    logFile << "Process Report - Generated at: " << dt;
+//    logFile << "=================================================================\n";
+//
+//    // Redirect cout to the file temporarily
+//    std::streambuf* oldCoutBuffer = std::cout.rdbuf();
+//    std::cout.rdbuf(logFile.rdbuf());
+//
+//    // Use existing display function
+//    displayProcessStatus();
+//
+//    // Restore cout
+//    std::cout.rdbuf(oldCoutBuffer);
+//    logFile.close();
+//}
+
 void MainConsole::saveProcessReport() const {
+    if (screenListHist.empty()) {
+        return;
+    }
+
     std::ofstream logFile("csopesy-log.txt");
     if (!logFile) {
         std::cout << RED << "Error: Could not open log file." << RESET << std::endl;
         return;
     }
 
-    // Get current time for the log entry
     time_t now = time(0);
     char* dt = ctime(&now);
 
-    // Write header with timestamp
     logFile << "\n=================================================================\n";
     logFile << "Process Report - Generated at: " << dt;
     logFile << "=================================================================\n";
-
-    // Redirect cout to the file temporarily
-    std::streambuf* oldCoutBuffer = std::cout.rdbuf();
-    std::cout.rdbuf(logFile.rdbuf());
-
-    // Use existing display function
-    displayProcessStatus();
-
-    // Restore cout
-    std::cout.rdbuf(oldCoutBuffer);
+    logFile << screenListHist.back();  // Write the last screen -ls output
     logFile.close();
 }
