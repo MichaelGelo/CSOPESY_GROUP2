@@ -30,9 +30,6 @@
     <ClCompile Include="MarqueeConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SchedulingConsole.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -74,9 +71,6 @@
     <ClInclude Include="MarqueeConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SchedulingConsole.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryConsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -99,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ICommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Design.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

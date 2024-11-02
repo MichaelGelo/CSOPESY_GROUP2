@@ -28,11 +28,11 @@ private:
     std::vector<std::thread> cpuThreads;
     std::mutex processMutex;
     std::condition_variable processCV;
-    bool shouldTerminate;
+    //bool shouldTerminate;
 
-    void cpuThreadFunction(int coreId);
-    void startCPUThreads();
-    void stopCPUThreads();
+    //void cpuThreadFunction(int coreId);
+    //void startCPUThreads();
+    //void stopCPUThreads();
 
     bool isSchedulerTestRunning = false;               
     std::thread testThread;
@@ -76,7 +76,7 @@ public:
     void process() override;
     void menu() const;
     void enter() const;
-    void color(int n) const;
+    //void color(int n) const;
     bool isInitialized;
     std::shared_ptr<Scheduler> schedulerInstance;
     CPUCycle cpuCycle;
@@ -84,8 +84,8 @@ public:
     int nextPid = 1;
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
-    void startProcessing();
-    void stopProcessing();
+    //void startProcessing();
+    //void stopProcessing();
 
     void schedulerTest();  
     void schedulerStop(); 

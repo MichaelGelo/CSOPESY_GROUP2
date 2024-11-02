@@ -141,7 +141,6 @@
     <ClCompile Include="MemoryConsole.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Scheduler.cpp" />
-    <ClCompile Include="SchedulingConsole.cpp" />
     <ClCompile Include="ScreenConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +156,6 @@
     <ClInclude Include="Process.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scheduler.h" />
-    <ClInclude Include="SchedulingConsole.h" />
     <ClInclude Include="ScreenConsole.h" />
   </ItemGroup>
   <ItemGroup>

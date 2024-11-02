@@ -78,7 +78,7 @@ public:
     void getNextCommand(std::function<void()> command);
     void switchState(ProcessState newState);
     void displayProcessInfo() const;
-    void run();
+    //void run();
     void setCore(int coreID);};
     
 

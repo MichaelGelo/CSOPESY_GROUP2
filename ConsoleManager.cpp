@@ -1,7 +1,6 @@
 #include "ConsoleManager.h"
 #include "MainConsole.h"
 #include "MarqueeConsole.h"
-#include "SchedulingConsole.h"
 #include "MemoryConsole.h"
 #include "ScreenConsole.h"
 #include "Design.h"
@@ -13,7 +12,6 @@ ConsoleManager::ConsoleManager() {
     this->consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     this->consoleTable[MAIN_CONSOLE] = std::make_shared<MainConsole>();
     this->consoleTable[MARQUEE_CONSOLE] = std::make_shared<MarqueeConsole>();
-    this->consoleTable[SCHEDULING_CONSOLE] = std::make_shared<SchedulingConsole>();
     this->consoleTable[MEMORY_CONSOLE] = std::make_shared<MemoryConsole>();
     this->switchConsole(MAIN_CONSOLE);
 }
