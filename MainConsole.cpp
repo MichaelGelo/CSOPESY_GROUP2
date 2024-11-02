@@ -25,7 +25,6 @@ MainConsole::MainConsole() : AConsole("MAIN_CONSOLE"), menuShown(false), isIniti
 void MainConsole::onEnabled() {
     display();
 }
-
 void MainConsole::display() {
     system("cls");
     menu();
@@ -35,11 +34,12 @@ void MainConsole::display() {
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
             || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
-            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0) || (cmd.rfind("\033[32m", 0) == 0)) {
+            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0) || (cmd.rfind("\033[32m", 0) == 0)
+            || (cmd.rfind("Scheduler test stopped", 0) == 0) || (cmd.rfind("Starting scheduler test...", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
-            std::cout << "You entered: " << cmd << std::endl;
+            std::cout << "Enter a command: " << cmd << std::endl;
         }
     }
 
@@ -182,13 +182,19 @@ void MainConsole::process() {
             });
     }
     if (command == "scheduler-test") {
-        captureAndStoreOutput([this]() {
-            if (!isInitialized) {
+        if (!isInitialized) {
+            captureAndStoreOutput([this]() {
                 std::cout << RED << "Scheduler is not initialized. Please run the initialize command first." << RESET << std::endl;
-                return;
-            }
-            schedulerTest();
-            });
+                });
+        }
+        else {
+            captureAndStoreOutput([this]() {
+                std::cout << GREEN << "Starting scheduler test...\n" << "Creating Dummy Processes..." << RESET << std::endl;
+                schedulerTest();
+                });
+        }
+        display();
+        return;
     }
     else if (command == "scheduler-stop") {
         captureAndStoreOutput([this]() {
@@ -198,6 +204,7 @@ void MainConsole::process() {
             }
             schedulerStop();
             });
+        display();
     }
     else if (command == "report-util") {
         captureAndStoreOutput([this]() {
@@ -254,16 +261,14 @@ void MainConsole::process() {
         showHistory();
     }
     else if (!command.empty()) {
-        if (command == "initialize") {
-            // do nothing
-        }
-        else {
-            captureAndStoreOutput([command]() {
-            std::cout << RED << "Command not recognized: " << command << RESET << std::endl;
-            });
-            display();
-        }
+    commandHist.push_back(command);
     }
+ else {
+     // If empty command (just Enter), simply redisplay the prompt
+     enter();
+     return;
+    }
+    display();
 }
 
 void MainConsole::schedulerTest() {
@@ -275,12 +280,13 @@ void MainConsole::schedulerTest() {
     else {
         std::cout << "Scheduler test is already running." << std::endl;
     }
+    
 }
 
 void MainConsole::schedulerStop() {
     if (isSchedulerTestRunning) {
         isSchedulerTestRunning = false;
-        std::cout << "Scheduler test stopped." << std::endl;
+        std::cout << GREEN << "Stopping Creating Dummy Processes...\n" << "Scheduler test stopped." << RESET << std::endl;
     }
     else {
         std::cout << "Scheduler test is not running." << std::endl;
@@ -288,6 +294,7 @@ void MainConsole::schedulerStop() {
 }
 
 void MainConsole::runSchedulerTest() {
+    //display();
     while (isSchedulerTestRunning && isCPURunning) {
         //std::cout << "Scheduler test running..." << std::endl;
 
@@ -295,12 +302,11 @@ void MainConsole::runSchedulerTest() {
         cpuCycle.cv.wait(lock);
 
         int currentCycle = cpuCycle.getCurrentCycle();
+        
         if (currentCycle % config.batchProcessFreq == 0) {
             std::string processName = "process" + std::to_string(currentCycle);
             while (ConsoleManager::getInstance()->screenExists(processName)) processName += "X";
             createProcess(processName);
-            display();
-            //std::cout << "yeyseysey"; for testing
         }
     }
 }
@@ -325,6 +331,7 @@ TYPE 'exit' TO QUIT
 void MainConsole::enter() const {
 
     std::cout << "Enter a command: ";
+
 }
 
 
@@ -338,7 +345,7 @@ void MainConsole::showHistory() const {
 
 
 void MainConsole::clear() {
-    system("cls");
+    //system("cls");
 }
 
 void MainConsole::captureAndStoreOutput(std::function<void()> func) {
@@ -389,7 +396,7 @@ void MainConsole::displayProcessStatus() const {
         std::cout << "There are no active processes.\n";
     }
 
-    std::cout << "\nFinished:\n";
+    std::cout << "\nFinished Processes:\n";
 
     // Display finished processes (FINISHED state)
     for (const auto& process : processes) {
