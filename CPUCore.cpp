@@ -15,9 +15,10 @@ void CPUCore::checkAndRunProcess() {
         currentProcess->getNextCommand([]() {});
         incrementQuantumUsed(); //added last night
         removeProcessIfDone();
+        // std::cout << "The core has commanded."; // for testing only
     }
     else {
-        std::cout << "Core " << coreID << " has no process assigned." << std::endl;
+        //std::cout << "Core " << coreID << " has no process assigned." << std::endl;
     }
 }
 
@@ -38,6 +39,7 @@ void CPUCore::removeProcessIfDone() {
             if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
                 currentProcess->switchState(Process::WAITING);
                 scheduler->addToRQ(currentProcess);
+                 // std::cout << "quantum done" << std::endl; // for testing only
             }
             clearProcess();
         }
@@ -54,12 +56,12 @@ void CPUCore::clearProcess() {
 void CPUCore::waitForCycleAndExecute(std::condition_variable& cycleCondition, std::mutex& cycleMutex, int delayPerExec) {
     while (running) {
         if (!isBusy) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Wait if core is idle
+            std::this_thread::sleep_for(std::chrono::microseconds(1)); // Wait if core is idle
             continue;
         }
 
         // Wait until delayPerExec cycles have passed in CPUCycle
-        int targetCycle = scheduler->getCpuCycle().getCurrentCycle() + delayPerExec;
+        int targetCycle = scheduler->getCpuCycle().getCurrentCycle() + delayPerExec + 1;
 
         {
             std::unique_lock<std::mutex> lock(cycleMutex);

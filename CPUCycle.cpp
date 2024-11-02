@@ -2,7 +2,7 @@
 #include <iostream>
 #include <chrono>
 
-CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(10000) {}
+CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(1) {}
 
 CPUCycle::~CPUCycle() {
     stopClock();
@@ -47,6 +47,7 @@ void CPUCycle::runCycles() {
             std::lock_guard<std::mutex> lock(mtx);
             cycleCount++;
             cv.notify_all(); // Notify all waiting threads of cycle increment
+            // std::cout << "1 cycle" << std::endl; for testing
         }
 
         // Sleep for the specified delay in microseconds
