@@ -18,7 +18,7 @@ void CPUCore::checkAndRunProcess() {
         // std::cout << "The core has commanded."; // for testing only
     }
     else {
-        std::cout << "Core " << coreID << " has no process assigned." << std::endl;
+        //std::cout << "Core " << coreID << " has no process assigned." << std::endl;
     }
 }
 
@@ -56,7 +56,7 @@ void CPUCore::clearProcess() {
 void CPUCore::waitForCycleAndExecute(std::condition_variable& cycleCondition, std::mutex& cycleMutex, int delayPerExec) {
     while (running) {
         if (!isBusy) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Wait if core is idle
+            std::this_thread::sleep_for(std::chrono::microseconds(1)); // Wait if core is idle
             continue;
         }
 
