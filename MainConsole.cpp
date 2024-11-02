@@ -35,7 +35,7 @@ void MainConsole::display() {
         if ((cmd.rfind("Active Screens", 0) == 0) || (cmd.rfind("Command not recognized", 0) == 0) || (cmd.rfind("No active screens.", 0) == 0)
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
             || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
-            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0)) {
+            || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0) || (cmd.rfind("\033[32m", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -209,6 +209,8 @@ void MainConsole::process() {
     }
     else if (command == "clear") {
         system("cls");
+        menu();
+        enter();
     }
     else if (command.rfind("screen -s ", 0) == 0) {
         std::string processName = command.substr(10);
@@ -356,8 +358,23 @@ void MainConsole::displayProcessStatus() const {
     bool hasRunningProcess = false;
     bool hasFinishedProcess = false;
 
-    std::cout << "-----------------------------------------------------------------\n";
+    int unfinishedProcesses = 0;
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::RUNNING) {
+            unfinishedProcesses++;
+        }
+    }
+    float core_used = unfinishedProcesses < config.numCpu ? unfinishedProcesses : config.numCpu;
+    float cpu_utilization = (core_used / (float)config.numCpu) * 100;
+    float core_available = config.numCpu - core_used;
+
+    std::cout << GREEN << "\nCPU Utilization: " << std::fixed << std::setprecision(2)<< cpu_utilization << "%" << std::endl;
+    std::cout << "Core Used: " << static_cast<int>(core_used) << std::endl;
+    std::cout << "Core Available: " << static_cast<int>(core_available) << "\n" << RESET << std::endl;
     std::cout << "Running Processes:\n";
+
+    std::cout << "-----------------------------------------------------------------\n";
 
     // Display running processes (READY, RUNNING, WAITING states)
     for (const auto& process : processes) {
@@ -372,7 +389,7 @@ void MainConsole::displayProcessStatus() const {
         std::cout << "There are no active processes.\n";
     }
 
-    std::cout << "\nFinished c:\n";
+    std::cout << "\nFinished:\n";
 
     // Display finished processes (FINISHED state)
     for (const auto& process : processes) {
