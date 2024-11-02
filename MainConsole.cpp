@@ -389,7 +389,7 @@ void MainConsole::displayProcessStatus() const {
         std::cout << "There are no active processes.\n";
     }
 
-    std::cout << "\nFinished:\n";
+    std::cout << "\nFinished Processes:\n";
 
     // Display finished processes (FINISHED state)
     for (const auto& process : processes) {

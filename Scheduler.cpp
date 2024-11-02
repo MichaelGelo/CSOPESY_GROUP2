@@ -68,7 +68,7 @@ Scheduler::~Scheduler() {
 void Scheduler::addToRQ(std::shared_ptr<Process> process) {
     std::lock_guard<std::mutex> lock(rqMutex);
     if (schedulerAlgorithm == "fcfs") {
-        process->switchState(Process::RUNNING);
+        process->switchState(Process::READY);
     }
     if (schedulerAlgorithm == "rr") {
         process->switchState(Process::READY);
