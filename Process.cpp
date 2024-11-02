@@ -136,3 +136,4 @@ int Process::getMaxLines() const {
 int Process::getRemainingInstructions() const {
     return maxLines - curLines;
 }
+

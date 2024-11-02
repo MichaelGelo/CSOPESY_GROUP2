@@ -32,7 +32,7 @@ void ScreenConsole::display() {
     system("cls");
     std::cout << "Process: " << processName << std::endl;
     std::cout << "ID: " << pid << std::endl;
-    std::cout << "\nCurrent Instruction Line: " << currentLine << std::endl;
+    std::cout << "\nCurrent Instruction Line: " << processInstance->getCurLines() << std::endl;
     std::cout << "Lines of Code: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
     std::cout << "\nType 'exit' to return to the main menu.\n" << std::endl;
@@ -84,11 +84,11 @@ void ScreenConsole::handleProcessSmi() {
     std::cout << "\nProcess: " << processName << std::endl;
     std::cout << "ID: " << pid << std::endl;
 
-    if (currentLine >= totalLines) {
+    if (processInstance->getCurLines() >= totalLines) {
         std::cout << "Finished!" << std::endl;
     }
     else {
-        std::cout << "\nCurrent Instruction Line: " << currentLine << std::endl;
+        std::cout << "\nCurrent Instruction Line: " << processInstance->getCurLines() << std::endl;
         std::cout << "Lines of Code: " << totalLines << "\n" << std::endl;
     }
 }
