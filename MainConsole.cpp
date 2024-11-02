@@ -252,10 +252,15 @@ void MainConsole::process() {
         showHistory();
     }
     else if (!command.empty()) {
-        captureAndStoreOutput([command]() {
+        if (command == "initialize") {
+            // do nothing
+        }
+        else {
+            captureAndStoreOutput([command]() {
             std::cout << RED << "Command not recognized: " << command << RESET << std::endl;
             });
-        display();
+            display();
+        }
     }
 }
 
