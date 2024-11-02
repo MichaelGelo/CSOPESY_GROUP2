@@ -47,6 +47,7 @@ void CPUCycle::runCycles() {
             std::lock_guard<std::mutex> lock(mtx);
             cycleCount++;
             cv.notify_all(); // Notify all waiting threads of cycle increment
+            // std::cout << "1 cycle" << std::endl; for testing
         }
 
         // Sleep for the specified delay in microseconds
