@@ -35,7 +35,6 @@ void Process::executeCommand() {
     if (curLines < commandList.size()) {
         // Execute the current command in the list
         commandList[curLines]->execute();
-        ++curLines;  // Move to the next command
     }
 
     // If all commands have been executed, mark the process as finished
