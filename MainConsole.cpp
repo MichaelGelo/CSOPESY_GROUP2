@@ -156,8 +156,6 @@ void MainConsole::process() {
         return;
     }
 
-    ////////////////// EDIT
-
     else if (command == "marquee") {
         captureAndStoreOutput([]() {
             std::cout << "Marquee command recognized. Launching MarqueeConsole..." << std::endl;
@@ -260,9 +258,9 @@ void MainConsole::process() {
         display();
         return;
     }
-    else if (command == "history") {
-        showHistory();
-    }
+    // else if (command == "history") {
+    //     showHistory();
+    // }
     else if (!command.empty()) {
     commandHist.push_back(command);
     }
