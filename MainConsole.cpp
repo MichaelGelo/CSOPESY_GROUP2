@@ -298,6 +298,7 @@ void MainConsole::schedulerStop() {
 
 void MainConsole::runSchedulerTest() {
     //display();
+    int processCounter = 1;
     while (isSchedulerTestRunning && isCPURunning) {
         //std::cout << "Scheduler test running..." << std::endl;
 
@@ -307,9 +308,11 @@ void MainConsole::runSchedulerTest() {
         int currentCycle = cpuCycle.getCurrentCycle();
         
         if (currentCycle % config.batchProcessFreq == 0) {
-            std::string processName = "process" + std::to_string(currentCycle);
+            //std::string processName = "process" + std::to_string(currentCycle);
+            std::string processName = "process" + std::to_string(processCounter) +"_" + std::to_string(currentCycle);
             while (ConsoleManager::getInstance()->screenExists(processName)) processName += "X";
             createProcess(processName);
+            processCounter++;
         }
     }
 }
