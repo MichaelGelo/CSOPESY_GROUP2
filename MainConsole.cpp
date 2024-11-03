@@ -35,7 +35,7 @@ void MainConsole::display() {
             || (cmd.rfind("Process <", 0) == 0) || (cmd.rfind("Screen name", 0) == 0) || (cmd.rfind("----------------", 0) == 0)
             || (cmd.rfind("Generating process utilization report...", 0) == 0) || (cmd.rfind("Initialize command recognized", 0) == 0)
             || (cmd.rfind("Please initialize", 0) == 0) || (cmd.rfind("Marquee command", 0) == 0) || (cmd.rfind("\033[31m", 0) == 0) || (cmd.rfind("\033[32m", 0) == 0)
-            || (cmd.rfind("Scheduler test stopped", 0) == 0) || (cmd.rfind("Starting scheduler test...", 0) == 0)) {
+            || (cmd.rfind("Scheduler test stopped", 0) == 0) || (cmd.rfind("Starting scheduler test...", 0) == 0) || (cmd.rfind("\033[33m", 0) == 0)) {
             std::cout << cmd << std::endl;
         }
         else {
@@ -129,7 +129,7 @@ void MainConsole::process() {
                 isCPURunning = true;
 
                 // Create the Scheduler object using the stored configuration
-                schedulerInstance = std::make_shared<Scheduler>(  // Changed to make_shared since schedulerInstance is shared_ptr
+                schedulerInstance = std::make_shared<Scheduler>( 
                     cpuCycle,           // added cpuCycle
                     this->config.numCpu,
                     this->config.scheduler,
@@ -140,7 +140,7 @@ void MainConsole::process() {
                     this->config.delayPerExec
                 );
 
-                schedulerInstance->displayConfiguration();  // Changed schedulerObject to schedulerInstance
+                schedulerInstance->displayConfiguration(); 
                 isInitialized = true;
             }
             });
@@ -176,7 +176,12 @@ void MainConsole::process() {
 
     else if (command == "screen") {
         captureAndStoreOutput([]() {
-            std::cout << "Screen command recognized. Doing something." << std::endl;
+            std::cout << RED << "Invalid screen command.\n\n" << RESET << std::endl;
+
+            std::cout << GREEN << "Usage:\n";
+            std::cout << YELLOW << "  screen -s <name> (create new screen)\n";
+            std::cout << "  screen -r <name> (restore screen)\n";
+            std::cout << "  screen -ls (list all screens)\n\n"<<RESET;
             });
     }
     if (command == "scheduler-test") {
