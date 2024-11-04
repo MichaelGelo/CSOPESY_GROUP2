@@ -13,3 +13,6 @@
 - Download the repository.
 - Run it in Visual Studio.
 - Or run it in your terminal.
+- Or run it in your cmd
+-- g++ *.cpp -o main.exe -std=c++20
+-- .\main.exe
