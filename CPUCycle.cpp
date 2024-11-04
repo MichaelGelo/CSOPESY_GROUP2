@@ -2,7 +2,7 @@
 #include <iostream>
 #include <chrono>
 
-CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(1) {}
+CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(5) {}
 
 CPUCycle::~CPUCycle() {
     stopClock();
