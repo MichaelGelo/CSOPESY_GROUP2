@@ -16,6 +16,13 @@ void Scheduler::displayConfiguration() {
     std::cout << "Min Instructions: " << minInstructions << std::endl;
     std::cout << "Max Instructions: " << maxInstructions << std::endl;
     std::cout << "Delay per Execution: " << delayPerExec << std::endl;
+
+    // added for mo2
+    std::cout << "Maximum Overall Memory: " << maxOverallMem << std::endl;
+    std::cout << "Memory per Frame: " << memPerFrame << std::endl;
+    std::cout << "Minimum Memory per Process: " << minMemPerProc << std::endl;
+    std::cout << "Maximum Memory per Process: " << maxMemPerProc << std::endl;
+
 }
 
 // Remove quotes from a string

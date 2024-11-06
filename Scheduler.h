@@ -22,6 +22,13 @@ private:
     int minInstructions;
     int maxInstructions;
     int delayPerExec;
+
+    // added for mo2
+    int maxOverallMem;
+    int memPerFrame;
+    int minMemPerProc;
+    int maxMemPerProc;
+
     std::atomic<bool> schedulerStatus = false;
 
     std::vector<std::unique_ptr<CPUCore>> cores;  // Use unique_ptr to manage CPUCore objects
@@ -44,10 +51,12 @@ private:
 public:
     // Constructor
     Scheduler(CPUCycle& cpuCycle, int numCpu, const std::string& scheduler, int quantumCycles,
-        int batchProcessFreq, int minIns, int maxIns, int delayExec)
+        int batchProcessFreq, int minIns, int maxIns, int delayExec,
+        int maxOverallMem, int memPerFrame, int minMemPerProc, int maxMemPerProc)
         : cpuCycle(cpuCycle), numCpu(numCpu), schedulerAlgorithm(scheduler), quantumCycles(quantumCycles),
         batchProcessFreq(batchProcessFreq), minInstructions(minIns), maxInstructions(maxIns),
-        delayPerExec(delayExec) {
+        delayPerExec(delayExec), maxOverallMem(maxOverallMem), memPerFrame(memPerFrame),
+        minMemPerProc(minMemPerProc), maxMemPerProc(maxMemPerProc) {
 
         initializeCores();
         removeQuotes(schedulerAlgorithm);
@@ -75,7 +84,7 @@ public:
     CPUCycle& getCpuCycle() { return cpuCycle; }
     bool isRoundRobin() const { return schedulerAlgorithm == "rr"; }
 
-    void schedulerTest();                           
+    //void schedulerTest();                           
     void displayConfiguration();                    
     void schedulerStop();                           
     void addToRQ(std::shared_ptr<Process> process);  

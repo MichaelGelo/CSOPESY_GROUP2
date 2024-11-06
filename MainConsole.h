@@ -51,6 +51,11 @@ private:
         int minIns;
         int maxIns;
         int delayPerExec;
+        // added for mo2
+        int maxOverallMem;
+        int memPerFrame;
+        int minMemPerProc;
+        int maxMemPerProc;
 
         // Constructor with default values
         Configuration() :
@@ -60,7 +65,12 @@ private:
             batchProcessFreq(0),
             minIns(0),
             maxIns(0),
-            delayPerExec(0) {}
+            delayPerExec(0),
+            // added for mo2
+            maxOverallMem(0),
+            memPerFrame(0),
+            minMemPerProc(0),
+            maxMemPerProc(0){}
     };
 
     Configuration config;

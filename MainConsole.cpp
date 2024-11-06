@@ -124,6 +124,12 @@ void MainConsole::process() {
                 this->config.maxIns = std::stoi(configFile["max-ins"]);
                 this->config.delayPerExec = std::stoi(configFile["delay-per-exec"]);
 
+                // added for mo2
+                this->config.maxOverallMem = std::stoi(configFile["max-overall-mem"]);
+                this->config.memPerFrame = std::stoi(configFile["mem-per-frame"]);
+                this->config.minMemPerProc = std::stoi(configFile["min-mem-per-proc"]);
+                this->config.maxMemPerProc = std::stoi(configFile["max-mem-per-proc"]);
+
                 // Initialize the CPU cycle counter
                 cpuCycle.startClock();
                 isCPURunning = true;
@@ -137,7 +143,13 @@ void MainConsole::process() {
                     this->config.batchProcessFreq,
                     this->config.minIns,
                     this->config.maxIns,
-                    this->config.delayPerExec
+                    this->config.delayPerExec,
+
+                    // added for mo2
+                    this->config.maxOverallMem,
+                    this->config.memPerFrame,
+                    this->config.minMemPerProc,
+                    this->config.maxMemPerProc
                 );
 
                 schedulerInstance->displayConfiguration(); 
@@ -301,7 +313,7 @@ void MainConsole::schedulerStop() {
 
 void MainConsole::runSchedulerTest() {
     int processCounter = 1;
-    const float MAXLOAD_THRESHOLD = 0.1;  // 75% CPU utilization threshold
+    const float MAXLOAD_THRESHOLD = 0.95;  // 75% CPU utilization threshold
 
     while (isSchedulerTestRunning && isCPURunning) {
         std::unique_lock<std::mutex> lock(cpuCycle.mtx);
