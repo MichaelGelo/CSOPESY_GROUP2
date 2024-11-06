@@ -5,7 +5,10 @@
 #include "Process.h"
 #include "Scheduler.h"
 #include "CPUCore.h"
-
+#include <fstream>
+#include <chrono>
+#include <iomanip>
+#include <ctime>
 // Display scheduler configuration
 void Scheduler::displayConfiguration() {
     std::cout << "Scheduler Configuration:" << std::endl;
@@ -94,6 +97,9 @@ void Scheduler::fcfs() {
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
+        // for mo2
+        generateMemoryReport();
+
         // Wait for CPU cycles to be available and check for free cores
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
@@ -201,6 +207,9 @@ void Scheduler::listenForCycleRR() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(rqMutex);
 
+        // for mo2
+        generateMemoryReport();
+           
         // Wait until there are processes or scheduler is stopped
         rqCondition.wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -241,4 +250,44 @@ void Scheduler::listenForCycleRR() {
     }
 }
 
+void Scheduler::generateMemoryReport() {
+    //std::cout << "Printing to file memory log...\n"; // for debugging lng, can remove
 
+    std::ofstream reportFile("memory_report.txt", std::ios::app);
+    if (!reportFile.is_open()) {
+        std::cerr << "Failed to open report file." << std::endl;
+        return;
+    }
+    // Timestamp
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    reportFile << "Timestamp: (" << std::put_time(std::localtime(&now_c), "%m/%d/%Y %I:%M:%S%p") << ")\n";
+
+    // Number of processes in memory
+    int numProcessesInMemory = calculateProcessesInMemory();
+    reportFile << "Number of processes in memory: " << numProcessesInMemory << "\n";
+
+    // Total external fragmentation in KB
+    int totalExternalFragmentation = calculateExternalFragmentation();
+    reportFile << "Total external fragmentation in KB: " << totalExternalFragmentation << "\n";
+
+    // An ASCII printout of the memory
+    reportFile << getMemoryPrintout() << "\n";
+
+    reportFile.close();
+}
+
+int Scheduler::calculateProcessesInMemory() {
+    // calc here the no. of processes in memory
+    return maxOverallMem / maxMemPerProc;
+}
+
+int Scheduler::calculateExternalFragmentation() {
+    // calc here external fragmentation
+    return (maxOverallMem % maxMemPerProc) * memPerFrame;
+}
+
+std::string Scheduler::getMemoryPrintout() {
+    // calc here the mmemory printout
+    return "----end---- = 16384\n16384\nPl\n12288\n8192\nP9\n4096\n----start---- = 0\n";
+}

@@ -24,6 +24,7 @@ private:
     int delayPerExec;
 
     // added for mo2
+    int quantumCycleCounter;
     int maxOverallMem;
     int memPerFrame;
     int minMemPerProc;
@@ -48,6 +49,10 @@ private:
     void listenForCycleRR();
     void stopAllCores();                          // Stops all cores and joins threads
 
+    void generateMemoryReport();
+    int calculateProcessesInMemory();
+    int calculateExternalFragmentation();
+    std::string getMemoryPrintout();
 public:
     // Constructor
     Scheduler(CPUCycle& cpuCycle, int numCpu, const std::string& scheduler, int quantumCycles,
