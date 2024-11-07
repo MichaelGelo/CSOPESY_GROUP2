@@ -7,15 +7,17 @@
 #include "Design.h"
 #include "Process.h"
 
-ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, std::vector<std::shared_ptr<Process>>& processes)
+ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<Process>>& processes)
     : AConsole(processName), processName(processName), pid(pid), core(core), totalLines(totalLines), processes(processes)
 {
-    processInstance = std::make_shared<Process>(pid, processName, core, totalLines);
-    processInstance->generateCommands();
+    processInstance = std::make_shared<Process>(pid, processName, core, totalLines, memoryRequirement);
+    processInstance->generateCommands(); 
+
+    // Add the new process instance to the vector of processes
     this->processes.push_back(processInstance);
 
-    timestamp = getCurrentTimestamp();
-    lastCommand = "";
+    timestamp = getCurrentTimestamp(); // Initialize timestamp
+    lastCommand = ""; // Initialize last command
 }
 
 

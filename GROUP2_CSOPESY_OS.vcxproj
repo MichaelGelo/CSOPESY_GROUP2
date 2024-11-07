@@ -133,6 +133,7 @@
     <ClCompile Include="CPUCore.cpp" />
     <ClCompile Include="CPUCycle.cpp" />
     <ClCompile Include="CPUCycle.h" />
+    <ClCompile Include="FlatMemoryAllocator.cpp" />
     <ClCompile Include="ICommand.cpp" />
     <ClCompile Include="IETThread.cpp" />
     <ClCompile Include="main.cpp" />
@@ -148,8 +149,10 @@
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="CPUCore.h" />
     <ClInclude Include="Design.h" />
+    <ClInclude Include="FlatMemoryAllocator.h" />
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IETThread.h" />
+    <ClInclude Include="IMemoryAllocator.h" />
     <ClInclude Include="MainConsole.h" />
     <ClInclude Include="MarqueeConsole.h" />
     <ClInclude Include="MemoryConsole.h" />

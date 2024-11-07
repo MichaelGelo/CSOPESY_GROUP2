@@ -18,8 +18,10 @@ private:
     int curLines;
     bool isFinished;
     mutable std::mutex mutex;
-
     std::string finishedTime;
+    int memoryRequirement;
+
+    std::shared_ptr<void> memoryPointer;
     
 public:
     enum ProcessState {
@@ -35,7 +37,7 @@ private:
     CommandList commandList;
 
 public:
-    Process(int pid, std::string screenName, int core, int maxLines);
+    Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement);
     void generateCommands();
     Process(const Process&) = delete;
     Process& operator=(const Process&) = delete;
@@ -45,10 +47,11 @@ public:
         : pid(other.pid), screenName(std::move(other.screenName)),
         core(other.core), maxLines(other.maxLines),
         curLines(other.curLines), isFinished(other.isFinished),
-        state(other.state) {
+        state(other.state), memoryRequirement(other.memoryRequirement) {
         other.pid = -1;
         other.isFinished = false;
     }
+
 
     Process& operator=(Process&& other) noexcept {
         if (this != &other) {
@@ -59,11 +62,16 @@ public:
             curLines = other.curLines;
             isFinished = other.isFinished;
             state = other.state;
+            memoryRequirement = other.memoryRequirement; 
 
             other.pid = -1;
             other.isFinished = false;
         }
         return *this;
+    }
+
+    void setMemoryPointer(std::shared_ptr<void> ptr) {
+        memoryPointer = ptr; // Set the memory pointer when allocated
     }
 
     int getPid() const;
@@ -79,7 +87,9 @@ public:
     void switchState(ProcessState newState);
     void displayProcessInfo() const;
     //void run();
-    void setCore(int coreID);};
-    
+    void setCore(int coreID);
+    int getMemoryRequirement() const;
+
+};
 
 #endif 

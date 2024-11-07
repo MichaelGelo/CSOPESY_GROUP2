@@ -1,6 +1,7 @@
 #pragma once
 #include "Process.h"
 #include "ConsoleManager.h"
+#include "FlatMemoryAllocator.h"
 #include "CPUCycle.h"
 #include "CPUCore.h"
 #include <string>
@@ -39,6 +40,7 @@ private:
     std::condition_variable cv;                   // Condition variable for scheduler
     std::mutex rqMutex;                           // Mutex for ready queue
     std::condition_variable rqCondition;          // Condition variable for ready queue
+    std::unique_ptr<FlatMemoryAllocator> memoryAllocator;
 
     // Private helper methods
     void initializeCores();                       // Initializes CPU cores and threads
@@ -62,6 +64,9 @@ public:
         batchProcessFreq(batchProcessFreq), minInstructions(minIns), maxInstructions(maxIns),
         delayPerExec(delayExec), maxOverallMem(maxOverallMem), memPerFrame(memPerFrame),
         minMemPerProc(minMemPerProc), maxMemPerProc(maxMemPerProc) {
+
+        memoryAllocator = std::make_unique<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc);
+        memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.
 
         initializeCores();
         removeQuotes(schedulerAlgorithm);

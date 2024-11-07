@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iomanip>
 #include <ctime>
+
 // Display scheduler configuration
 void Scheduler::displayConfiguration() {
     std::cout << "Scheduler Configuration:" << std::endl;
@@ -278,13 +279,13 @@ void Scheduler::generateMemoryReport() {
 }
 
 int Scheduler::calculateProcessesInMemory() {
-    // calc here the no. of processes in memory
-    return maxOverallMem / maxMemPerProc;
+    int totalAllocatedMemory = memoryAllocator->getAllocatedSize();
+    return totalAllocatedMemory / minMemPerProc;
 }
 
 int Scheduler::calculateExternalFragmentation() {
-    // calc here external fragmentation
-    return (maxOverallMem % maxMemPerProc) * memPerFrame;
+    int totalFreeMemory = memoryAllocator->getFreeMemory(); 
+    return totalFreeMemory;
 }
 
 std::string Scheduler::getMemoryPrintout() {

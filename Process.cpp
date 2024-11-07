@@ -7,8 +7,10 @@
 #include <chrono>
 #include <fstream>
 
-Process::Process(int pid, std::string screenName, int core, int maxLines)
-    : pid(pid), screenName(screenName), core(core), maxLines(maxLines), curLines(0), state(READY), isFinished(false) {}
+Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement)
+    : pid(pid), screenName(std::move(screenName)), core(core),
+    maxLines(maxLines), curLines(0), isFinished(false),
+    state(READY), memoryRequirement(memoryRequirement) {}
 
 Process::ProcessState Process::getState() const {
     return state;
@@ -88,9 +90,10 @@ void Process::displayProcessInfo() const {
         timeStream << finishedTime;
 
         std::cout << std::left << std::setw(10) << screenName  // Set width for name
-            << "  " << std::setw(28) << timeStream.str()       // Set width for timestamp
-            << "  Finished "
-            << "  " << curLines << "/" << maxLines;
+                  << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
+                  << "  Finished "
+                  << "  " << curLines << "/" << maxLines
+                  << "  Memory Requirement: " << memoryRequirement; // Display memory requirement -- FOR DEBUGGING ONLY
         std::cout << std::endl;
     }
     else {
@@ -103,12 +106,14 @@ void Process::displayProcessInfo() const {
         timeStream << timeBuffer;
 
         std::cout << std::left << std::setw(10) << screenName  // Set width for name
-            << "  " << std::setw(28) << timeStream.str()       // Set width for timestamp
-            << "  Core: " << std::setw(3) << core              // Set width for core
-            << "  " << std::right << std::setw(3) << curLines << "/" << std::left << std::setw(3) << maxLines;
+                  << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
+                  << "  Core: " << std::setw(3) << core        // Set width for core
+                  << "  " << std::right << std::setw(3) << curLines << "/" << std::left << std::setw(3) << maxLines
+                  << "  Memory Requirement: " << memoryRequirement; // Display memory requirement -- FOR DEBUGGING ONLY
         std::cout << std::endl;
     }
 }
+
 
 void Process::setCore(int coreID) {
    core = coreID;
@@ -138,3 +143,6 @@ int Process::getRemainingInstructions() const {
     return maxLines - curLines;
 }
 
+int Process::getMemoryRequirement() const {
+    return memoryRequirement;
+}

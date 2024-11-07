@@ -75,8 +75,10 @@ void MainConsole::createProcess(std::string processName) {
     std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
     int randomLines = dis(gen);
 
-    // Create ScreenConsole, which in turn creates the Process
-    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, randomLines, processes);
+    // Use minMemPerProc from the config as the memory requirement for each process
+    int memoryRequirement = this->config.minMemPerProc; // Accessing directly from the config
+
+    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, randomLines, memoryRequirement, processes);
     ConsoleManager::getInstance()->registerScreen(newScreen);
 
     // Add the internally created Process to the Scheduler
@@ -152,7 +154,8 @@ void MainConsole::process() {
                     this->config.maxMemPerProc
                 );
 
-                schedulerInstance->displayConfiguration(); 
+                // schedulerInstance->displayConfiguration(); // COMMENTED THIS ONE OUT LANG
+
                 isInitialized = true;
             }
             });
@@ -243,7 +246,6 @@ void MainConsole::process() {
             display();
         }
         else {
-            // Create process with default core=1 and maxLines=100
             // Create process with default core=1 and maxLines=100
             createProcess(processName);
             ConsoleManager::getInstance()->switchConsole(processName);
