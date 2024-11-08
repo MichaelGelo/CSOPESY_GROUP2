@@ -83,6 +83,7 @@ void MainConsole::createProcess(std::string processName) {
 
     // Add the internally created Process to the Scheduler
     schedulerInstance->addToRQ(newScreen->getProcess());
+
 }
 
 

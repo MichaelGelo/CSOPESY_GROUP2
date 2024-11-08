@@ -4,11 +4,14 @@
 #include <thread>
 #include "Process.h"
 #include "Scheduler.h"
+#include "FlatMemoryAllocator.h"
 #include "CPUCore.h"
 #include <fstream>
 #include <chrono>
 #include <iomanip>
 #include <ctime>
+#include <memory>
+#include <unordered_set> 
 
 // Display scheduler configuration
 void Scheduler::displayConfiguration() {
@@ -29,6 +32,72 @@ void Scheduler::displayConfiguration() {
 
 }
 
+// FOR DEBUGGING PURPOSES ONLY
+
+void logMessage(const std::string& message) {
+    std::ofstream logFile("allocation_log.txt", std::ios::app); // Append mode
+    if (logFile.is_open()) {
+        logFile << message << std::endl;
+    }
+    else {
+        std::cerr << "Failed to open log file." << std::endl;
+    }
+}
+
+// FOR DEBUGGING PURPOSES ONLY
+
+bool Scheduler::attachProcessToMemory(std::shared_ptr<Process>& process) {
+    int requiredMemory = process->getMemoryRequirement();
+
+    // Log the attempt to allocate memory for this process
+    logMessage("Attempting to attach process " + std::to_string(process->getPid()) +
+        " with memory requirement: " + std::to_string(requiredMemory) + " bytes");
+
+    if (memoryAllocator->getFreeMemory() >= requiredMemory) {
+        auto attachedProcess = std::make_shared<AttachedProcess>(
+            process->getPid(),
+            process->getScreenName(),
+            process->getCore(),
+            process->getMaxLines(),
+            process->getMemoryRequirement()
+        );
+
+        try {
+            void* memoryLocation = memoryAllocator->allocate(attachedProcess);
+            if (memoryLocation) {
+
+                attachedProcess->setMemoryLocation(memoryLocation);
+
+                logMessage("Memory location initially set for process " +
+                    std::to_string(attachedProcess->getPid()) +
+                    " at address: " + std::to_string(reinterpret_cast<uintptr_t>(attachedProcess->getMemoryLocation())));
+
+                logMessage("Memory location for process " + std::to_string(attachedProcess->getPid()) +
+                    " after updating reference: " + std::to_string(reinterpret_cast<uintptr_t>(attachedProcess->getMemoryLocation())));
+
+                logMessage("Current Memory Layout:\n" + getMemoryPrintout());
+
+                return true;
+            }
+        }
+        catch (const std::bad_alloc&) {
+            std::cerr << "Memory allocation failed for process " << process->getPid() << std::endl;
+            logMessage("Memory allocation failed for process " + std::to_string(process->getPid()));
+        }
+    }
+
+    std::cerr << "Insufficient memory for process " << process->getPid() << std::endl;
+    logMessage("Insufficient memory for process " + std::to_string(process->getPid()));
+
+    logMessage("Current Memory Layout after failed allocation attempt:\n" + getMemoryPrintout());
+
+    return false;
+}
+
+
+
+
+
 // Remove quotes from a string
 void Scheduler::removeQuotes(std::string& str) {
     if (!str.empty() && str.front() == '"' && str.back() == '"') {
@@ -42,7 +111,7 @@ void Scheduler::initializeCores() {
 
     for (int i = 0; i < numCpu; ++i) {
         // Create a CPU core and pass the Scheduler for access to shared resources
-        cores.push_back(std::make_unique<CPUCore>(i, quantumCycles, delayPerExec, this));
+        cores.push_back(std::make_unique<CPUCore>(i, quantumCycles, delayPerExec, this, memoryAllocator));
 
         // Start a dedicated thread for each core's loop
         coreThreads.emplace_back(&CPUCore::runCoreLoop, cores.back().get());
@@ -77,16 +146,16 @@ Scheduler::~Scheduler() {
 
 // Add process to the ready queue
 void Scheduler::addToRQ(std::shared_ptr<Process> process) {
+    if (!process) {
+        std::cerr << "Error: Trying to add a nullptr process to the ready queue." << std::endl;
+        return;
+    }
     std::lock_guard<std::mutex> lock(rqMutex);
-    if (schedulerAlgorithm == "fcfs") {
-        process->switchState(Process::READY);
-    }
-    if (schedulerAlgorithm == "rr") {
-        process->switchState(Process::READY);
-    }
+    process->switchState(Process::READY);
     rq.push(process);
     rqCondition.notify_all();
 }
+
 
 // Implement FCFS scheduling
 void Scheduler::fcfs() {
@@ -98,19 +167,15 @@ void Scheduler::fcfs() {
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
-        // for mo2
         generateMemoryReport();
-
-        // Wait for CPU cycles to be available and check for free cores
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
             });
-
         if (!schedulerStatus) break;
 
         for (auto& core : cores) {
-            // Check if the core is not busy
+            if (!core) continue; // Ensure core is valid
             if (!core->getIsBusy()) {
                 std::unique_lock<std::mutex> rqLock(rqMutex);
                 if (!rq.empty()) {
@@ -118,10 +183,12 @@ void Scheduler::listenForCycle() {
                     rq.pop();
                     rqLock.unlock();
 
-                    core->assignProcess(process);
-                    process->setCore(core->getCoreID());
-                    process->switchState(Process::RUNNING);
-                    core->setIsBusy(true);
+                    if (process) { // Ensure process is valid
+                        core->assignProcess(process);
+                        process->setCore(core->getCoreID());
+                        process->switchState(Process::RUNNING);
+                        core->setIsBusy(true);
+                    }
                 }
             }
         }
@@ -278,17 +345,89 @@ void Scheduler::generateMemoryReport() {
     reportFile.close();
 }
 
+
+
 int Scheduler::calculateProcessesInMemory() {
-    int totalAllocatedMemory = memoryAllocator->getAllocatedSize();
-    return totalAllocatedMemory / minMemPerProc;
+    int processCount = 0;
+
+    // Loop through the memory partitions and count allocated processes
+    auto memoryPartitions = memoryAllocator->getMemoryPartitions();
+    for (const auto& partition : memoryPartitions) {
+        if (partition.process != nullptr) { // Only count if a process is assigned
+            processCount++;
+        }
+    }
+
+    return processCount;
 }
+
 
 int Scheduler::calculateExternalFragmentation() {
-    int totalFreeMemory = memoryAllocator->getFreeMemory(); 
-    return totalFreeMemory;
+    // Retrieve total memory information
+    size_t totalMemory = memoryAllocator->getMaximumSize();
+    size_t allocatedMemory = memoryAllocator->getAllocatedSize();
+    size_t freeMemory = totalMemory - allocatedMemory; // Total free memory
+    size_t minimumAllocatableSize = 4096; // Your defined minimum allocation size
+    size_t externalFragmentation = 0; // Initialize external fragmentation counter
+
+    // Loop through the allocation map to find free blocks
+    for (size_t i = 0; i < totalMemory; ++i) {
+        if (!memoryAllocator->isAllocated(i)) { // If the block is free
+            size_t freeBlockSize = 0;
+
+            // Count the size of this contiguous free block
+            while (i < totalMemory && !memoryAllocator->isAllocated(i)) {
+                freeBlockSize++;
+                i++;
+            }
+
+            // If the free block is less than the minimum allocatable size, add it to fragmentation
+            if (freeBlockSize < minimumAllocatableSize) {
+                externalFragmentation += freeBlockSize; // Accumulate the size
+            }
+        }
+    }
+
+    // Return the total external fragmentation
+    return externalFragmentation; // Return in bytes, adjust if needed
 }
 
+
 std::string Scheduler::getMemoryPrintout() {
-    // calc here the mmemory printout
-    return "----end---- = 16384\n16384\nPl\n12288\n8192\nP9\n4096\n----start---- = 0\n";
+    std::ostringstream output;
+    size_t totalMemory = memoryAllocator->getMaximumSize();
+    size_t frameSize = memoryAllocator->getMemoryPerFrame(); 
+    size_t externalFragmentation = 0;
+
+    auto now = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+    output << "Timestamp: (" << std::put_time(std::localtime(&now_c), "%m/%d/%Y %I:%M:%S%p") << ")\n";
+
+    int numProcessesInMemory = calculateProcessesInMemory();
+    output << "Number of processes in memory: " << numProcessesInMemory << "\n";
+
+    output << "----end---- = " << totalMemory << "\n";
+
+
+    for (size_t i = 0; i < totalMemory / frameSize; ++i) {
+        size_t startAddress = i * frameSize;
+        std::shared_ptr<AttachedProcess> process = memoryAllocator->getPartitionAt(startAddress).process;
+
+        if (process) {
+            size_t endAddress = startAddress + frameSize;
+            output << endAddress << "\n";          
+            output << "P" << process->getPid() << "\n"; 
+            output << startAddress << "\n";        
+        }
+        else {
+            output << startAddress + frameSize << "\n";
+            output << "\n"; 
+            output << startAddress << "\n"; 
+            externalFragmentation += frameSize; 
+        }
+    }
+    output << "----start---- = 0\n";
+    output << "Total external fragmentation in KB: " << (externalFragmentation / 1024) << "\n";
+
+    return output.str();
 }

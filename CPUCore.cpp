@@ -1,13 +1,28 @@
 #include "CPUCore.h"
 #include "Scheduler.h"
+#include "AttachedProcess.h"
 #include <iostream>
 #include <chrono>
 
 void CPUCore::assignProcess(std::shared_ptr<Process> process) {
-    currentProcess = process;
+    auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(process);
+    if (!attachedProcess) {
+        if (scheduler->attachProcessToMemory(process)) {
+            attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(process);
+        }
+        else {
+            std::cout << "Not enough memory to attach process " << process->getPid() << " to memory." << std::endl;
+            return;
+        }
+    }
+
+    // Assign attached process to this core for execution
+    currentProcess = std::static_pointer_cast<Process>(attachedProcess);
     isBusy = true;
-    quantumUsed = 0; // Reset quantum usage when a new process is assigned
+    quantumUsed = 0;
 }
+
+
 
 void CPUCore::checkAndRunProcess() {
     if (currentProcess) {
@@ -23,29 +38,25 @@ void CPUCore::checkAndRunProcess() {
 }
 
 void CPUCore::removeProcessIfDone() {
-    /*if (currentProcess && (currentProcess->hasFinished() ||
-        (scheduler->isRoundRobin() && quantumUsed >= quantumCycles))) {
-
-        if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
-            scheduler->addToRQ(currentProcess);
-        }
-
-        clearProcess();  // Clear the core for the next process
-    }*/
     if (currentProcess) {
+        // Check if the process has finished or if its quantum is expired in a round-robin scheduler
         if (currentProcess->hasFinished() ||
             (scheduler->isRoundRobin() && isQuantumExpired())) {
 
             if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
                 currentProcess->switchState(Process::WAITING);
-                scheduler->addToRQ(currentProcess);
-                 // std::cout << "quantum done" << std::endl; // for testing only
+                scheduler->addToRQ(currentProcess);  // Re-add process to the Ready Queue if it hasn't finished
             }
-            clearProcess();
+
+            auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(currentProcess);
+            if (attachedProcess) {
+                memoryAllocator->deallocate(attachedProcess);
+            }
+
+            clearProcess();  
         }
     }
 }
-
 
 void CPUCore::clearProcess() {
     currentProcess.reset();

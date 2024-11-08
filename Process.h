@@ -21,8 +21,8 @@ private:
     std::string finishedTime;
     int memoryRequirement;
 
-    std::shared_ptr<void> memoryPointer;
-    
+    void* memoryPointer = nullptr;
+
 public:
     enum ProcessState {
         READY,
@@ -70,8 +70,8 @@ public:
         return *this;
     }
 
-    void setMemoryPointer(std::shared_ptr<void> ptr) {
-        memoryPointer = ptr; // Set the memory pointer when allocated
+    void setMemoryPointer(void* location) {
+        memoryPointer = location;
     }
 
     int getPid() const;
@@ -86,9 +86,9 @@ public:
     void getNextCommand(std::function<void()> command);
     void switchState(ProcessState newState);
     void displayProcessInfo() const;
-    //void run();
     void setCore(int coreID);
     int getMemoryRequirement() const;
+    virtual ~Process() = default;
 
 };
 

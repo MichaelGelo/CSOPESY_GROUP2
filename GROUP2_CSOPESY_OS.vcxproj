@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AConsole.h" />
+    <ClInclude Include="AttachedProcess.h" />
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="CPUCore.h" />
     <ClInclude Include="Design.h" />

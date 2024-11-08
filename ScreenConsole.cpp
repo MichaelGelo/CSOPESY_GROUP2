@@ -11,13 +11,12 @@ ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, 
     : AConsole(processName), processName(processName), pid(pid), core(core), totalLines(totalLines), processes(processes)
 {
     processInstance = std::make_shared<Process>(pid, processName, core, totalLines, memoryRequirement);
-    processInstance->generateCommands(); 
+    processInstance->generateCommands();
 
-    // Add the new process instance to the vector of processes
     this->processes.push_back(processInstance);
 
-    timestamp = getCurrentTimestamp(); // Initialize timestamp
-    lastCommand = ""; // Initialize last command
+    timestamp = getCurrentTimestamp(); 
+    lastCommand = ""; 
 }
 
 

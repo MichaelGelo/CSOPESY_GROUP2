@@ -9,8 +9,9 @@
 
 Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement)
     : pid(pid), screenName(std::move(screenName)), core(core),
-    maxLines(maxLines), curLines(0), isFinished(false),
-    state(READY), memoryRequirement(memoryRequirement) {}
+      maxLines(maxLines), curLines(0), isFinished(false),
+      state(READY), memoryRequirement(memoryRequirement) {
+}
 
 Process::ProcessState Process::getState() const {
     return state;
@@ -144,5 +145,6 @@ int Process::getRemainingInstructions() const {
 }
 
 int Process::getMemoryRequirement() const {
+    std::cout << "getMemoryRequirement called, returning: " << memoryRequirement << std::endl;
     return memoryRequirement;
 }

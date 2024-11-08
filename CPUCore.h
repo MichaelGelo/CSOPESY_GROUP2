@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <mutex>
 #include "Process.h"
+#include "FlatMemoryAllocator.h"
 
 class Scheduler; // to access rq 
 
@@ -17,12 +18,14 @@ private:
     int quantumUsed;
     int delayPerExec;
     std::atomic<bool> running;
-    Scheduler* scheduler; 
+    Scheduler* scheduler;  
+    std::shared_ptr<FlatMemoryAllocator> memoryAllocator;  
 
 public:
-    CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler)
+    CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler, std::shared_ptr<FlatMemoryAllocator> allocator)
         : coreID(id), quantumCycles(quantumCycles), delayPerExec(delayPerExec), quantumUsed(0),
-        isBusy(false), running(true), scheduler(scheduler) {}
+        isBusy(false), running(true), scheduler(scheduler), memoryAllocator(allocator) { }
+
 
     int getCoreID() const { return coreID; }
     bool getIsBusy() const { return isBusy; }

@@ -1,0 +1,88 @@
+Attempting to attach process 1 with memory requirement: 4096 bytes
+Memory location initially set for process 1 at address: 1938167828000
+Memory location for process 1 after updating reference: 1938167828000
+Current Memory Layout:
+Timestamp: (11/08/2024 11:57:58AM)
+Number of processes in memory: 0
+----end---- = 16384
+4096
+
+0
+8192
+
+4096
+12288
+
+8192
+16384
+
+12288
+----start---- = 0
+Total external fragmentation in KB: 0
+
+Attempting to attach process 2 with memory requirement: 4096 bytes
+Memory location initially set for process 2 at address: 1938167832096
+Memory location for process 2 after updating reference: 1938167832096
+Current Memory Layout:
+Timestamp: (11/08/2024 11:58:01AM)
+Number of processes in memory: 0
+----end---- = 16384
+4096
+
+0
+8192
+
+4096
+12288
+
+8192
+16384
+
+12288
+----start---- = 0
+Total external fragmentation in KB: 0
+
+Attempting to attach process 3 with memory requirement: 4096 bytes
+Memory location initially set for process 3 at address: 1938167836192
+Memory location for process 3 after updating reference: 1938167836192
+Current Memory Layout:
+Timestamp: (11/08/2024 11:58:03AM)
+Number of processes in memory: 0
+----end---- = 16384
+4096
+
+0
+8192
+
+4096
+12288
+
+8192
+16384
+
+12288
+----start---- = 0
+Total external fragmentation in KB: 0
+
+Attempting to attach process 4 with memory requirement: 4096 bytes
+Memory location initially set for process 4 at address: 1938167840288
+Memory location for process 4 after updating reference: 1938167840288
+Current Memory Layout:
+Timestamp: (11/08/2024 11:58:06AM)
+Number of processes in memory: 0
+----end---- = 16384
+4096
+
+0
+8192
+
+4096
+12288
+
+8192
+16384
+
+12288
+----start---- = 0
+Total external fragmentation in KB: 0
+
