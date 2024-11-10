@@ -40,6 +40,7 @@ private:
     size_t minMemoryPerProc;
     std::vector<char> memory;
     std::vector<bool> allocationMap;
+    std::unordered_map<size_t, size_t> allocatedMemoryMap;
 
     void initializeMemory();
     bool canAllocateAt(size_t index, size_t size) const;

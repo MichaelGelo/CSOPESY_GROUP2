@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "Process.h"
+#include "AttachedProcess.h"
 
 class ScreenConsole : public AConsole {
 public:
-    ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<Process>>& processes);
+    ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<AttachedProcess>>& processes);
 
-    std::shared_ptr<Process> getProcess() const;
+    std::shared_ptr<AttachedProcess> getProcess() const;
 
     void onEnabled() override;
     void display() override;
@@ -23,8 +23,8 @@ private:
     int core;
     int totalLines;
     int currentLine = 0;
-    std::shared_ptr<Process> processInstance;   
-    std::vector<std::shared_ptr<Process>>& processes;
+    std::shared_ptr<AttachedProcess> processInstance; 
+    std::vector<std::shared_ptr<AttachedProcess>>& processes; 
 
     std::vector<std::string> commandHist;
     std::string timestamp;

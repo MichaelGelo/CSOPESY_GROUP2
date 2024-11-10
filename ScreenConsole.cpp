@@ -5,24 +5,24 @@
 #include <sstream>
 #include "ConsoleManager.h"
 #include "Design.h"
-#include "Process.h"
+#include "AttachedProcess.h"
 
-ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<Process>>& processes)
+ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<AttachedProcess>>& processes)
     : AConsole(processName), processName(processName), pid(pid), core(core), totalLines(totalLines), processes(processes)
 {
-    processInstance = std::make_shared<Process>(pid, processName, core, totalLines, memoryRequirement);
+    processInstance = std::make_shared<AttachedProcess>(pid, processName, core, totalLines, memoryRequirement);
     processInstance->generateCommands();
 
     this->processes.push_back(processInstance);
-
-    timestamp = getCurrentTimestamp(); 
-    lastCommand = ""; 
+    timestamp = getCurrentTimestamp();
+    lastCommand = "";
 }
 
-
-std::shared_ptr<Process> ScreenConsole::getProcess() const {
+std::shared_ptr<AttachedProcess> ScreenConsole::getProcess() const {
     return processInstance;
 }
+
+
 
 void ScreenConsole::onEnabled() {
     system("cls");

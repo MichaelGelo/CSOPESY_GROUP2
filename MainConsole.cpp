@@ -75,16 +75,14 @@ void MainConsole::createProcess(std::string processName) {
     std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
     int randomLines = dis(gen);
 
-    // Use minMemPerProc from the config as the memory requirement for each process
-    int memoryRequirement = this->config.minMemPerProc; // Accessing directly from the config
+    int memoryRequirement = this->config.minMemPerProc;
 
     auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, randomLines, memoryRequirement, processes);
     ConsoleManager::getInstance()->registerScreen(newScreen);
 
-    // Add the internally created Process to the Scheduler
     schedulerInstance->addToRQ(newScreen->getProcess());
-
 }
+
 
 
 

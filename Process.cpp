@@ -13,6 +13,39 @@ Process::Process(int pid, std::string screenName, int core, int maxLines, int me
       state(READY), memoryRequirement(memoryRequirement) {
 }
 
+Process::Process(Process&& other) noexcept
+    : pid(other.pid), screenName(std::move(other.screenName)),
+    core(other.core), maxLines(other.maxLines),
+    curLines(other.curLines), isFinished(other.isFinished),
+    state(other.state), memoryRequirement(other.memoryRequirement),
+    memoryPointer(other.memoryPointer) 
+{
+    other.pid = -1;
+    other.isFinished = false;
+    other.memoryPointer = nullptr;
+}
+
+Process& Process::operator=(Process&& other) noexcept {
+    if (this != &other) {
+        pid = other.pid;
+        screenName = std::move(other.screenName);
+        core = other.core;
+        maxLines = other.maxLines;
+        curLines = other.curLines;
+        isFinished = other.isFinished;
+        state = other.state;
+        memoryRequirement = other.memoryRequirement;
+        memoryPointer = other.memoryPointer;  
+
+        other.pid = -1;
+        other.isFinished = false;
+        other.memoryPointer = nullptr;
+    }
+    return *this;
+}
+
+
+
 Process::ProcessState Process::getState() const {
     return state;
 }
@@ -145,6 +178,5 @@ int Process::getRemainingInstructions() const {
 }
 
 int Process::getMemoryRequirement() const {
-    std::cout << "getMemoryRequirement called, returning: " << memoryRequirement << std::endl;
     return memoryRequirement;
 }

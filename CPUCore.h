@@ -13,7 +13,7 @@ class CPUCore {
 private:
     int coreID;
     bool isBusy;
-    std::shared_ptr<Process> currentProcess;
+    std::shared_ptr<AttachedProcess> currentProcess;
     int quantumCycles;
     int quantumUsed;
     int delayPerExec;
@@ -31,7 +31,7 @@ public:
     bool getIsBusy() const { return isBusy; }
     void setIsBusy(bool status) { isBusy = status; }
 
-    void assignProcess(std::shared_ptr<Process> process);
+    void assignProcess(std::shared_ptr<AttachedProcess> process);
     void checkAndRunProcess();
     void removeProcessIfDone();
 

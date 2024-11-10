@@ -5,9 +5,9 @@
 #include <string>
 #include <functional>
 #include <mutex>
-#include <memory>        
-#include "ICommand.h" 
-
+#include <memory>
+#include <vector>
+#include "ICommand.h"
 
 class Process {
 private:
@@ -33,46 +33,27 @@ public:
 
 private:
     ProcessState state;
-    typedef std::vector<std::shared_ptr<ICommand>> CommandList;
+    using CommandList = std::vector<std::shared_ptr<ICommand>>;
     CommandList commandList;
 
 public:
     Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement);
-    void generateCommands();
+
     Process(const Process&) = delete;
     Process& operator=(const Process&) = delete;
+
+    Process(Process&& other) noexcept;
+    Process& operator=(Process&& other) noexcept;
+
+    void generateCommands();
+    void executeCommand();
+    void getNextCommand(std::function<void()> command);
     void logPrintCommand(const std::string& message);
+    void displayProcessInfo() const;
 
-    Process(Process&& other) noexcept
-        : pid(other.pid), screenName(std::move(other.screenName)),
-        core(other.core), maxLines(other.maxLines),
-        curLines(other.curLines), isFinished(other.isFinished),
-        state(other.state), memoryRequirement(other.memoryRequirement) {
-        other.pid = -1;
-        other.isFinished = false;
-    }
-
-
-    Process& operator=(Process&& other) noexcept {
-        if (this != &other) {
-            pid = other.pid;
-            screenName = std::move(other.screenName);
-            core = other.core;
-            maxLines = other.maxLines;
-            curLines = other.curLines;
-            isFinished = other.isFinished;
-            state = other.state;
-            memoryRequirement = other.memoryRequirement; 
-
-            other.pid = -1;
-            other.isFinished = false;
-        }
-        return *this;
-    }
-
-    void setMemoryPointer(void* location) {
-        memoryPointer = location;
-    }
+    ProcessState getState() const;
+    void switchState(ProcessState newState);
+    bool hasFinished() const;
 
     int getPid() const;
     const std::string& getScreenName() const;
@@ -80,16 +61,14 @@ public:
     int getCurLines() const;
     int getMaxLines() const;
     int getRemainingInstructions() const;
-    ProcessState getState() const;
-    bool hasFinished() const;
-    void executeCommand();
-    void getNextCommand(std::function<void()> command);
-    void switchState(ProcessState newState);
-    void displayProcessInfo() const;
-    void setCore(int coreID);
     int getMemoryRequirement() const;
-    virtual ~Process() = default;
 
+    void setCore(int coreID);
+
+    virtual void* getMemoryLocation() const { return memoryPointer; }
+    virtual void setMemoryLocation(void* location) { memoryPointer = location; }
+
+    virtual ~Process() = default;
 };
 
-#endif 
+#endif

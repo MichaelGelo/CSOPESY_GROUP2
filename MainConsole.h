@@ -5,44 +5,37 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include <map>           // Corrected inclusion of <map>
+#include <map> 
 #include <functional>
 #include "ScreenConsole.h"
-#include "Process.h"
+#include "AttachedProcess.h"
 #include "Scheduler.h"
 #include "CPUCycle.h"
-
 
 class MainConsole : public AConsole {
 
 private:
     void captureAndStoreOutput(std::function<void()> func);
     std::vector<std::string> commandHist;
-    
+
     void showHistory() const;
     bool menuShown;
-    void clear();  
+    void clear();
     void saveProcessReport() const;
-    std::map<std::string, Process*> processQueue;  // Corrected map inclusion
+    std::map<std::string, AttachedProcess*> processQueue;
 
     std::vector<std::thread> cpuThreads;
     std::mutex processMutex;
     std::condition_variable processCV;
-    //bool shouldTerminate;
-
-    //void cpuThreadFunction(int coreId);
-    //void startCPUThreads();
-    //void stopCPUThreads();
-
-    bool isSchedulerTestRunning = false;               
+    bool isSchedulerTestRunning = false;
     std::thread testThread;
     void runSchedulerTest();
 
-    // for cpu cycle
+    // CPU cycle management
     std::unique_ptr<CPUCycle> cpuCycleCounter;
     bool isCPURunning;
 
-    // Add configuration members
+    // Configuration for the scheduler
     struct Configuration {
         int numCpu;
         std::string scheduler;
@@ -51,13 +44,11 @@ private:
         int minIns;
         int maxIns;
         int delayPerExec;
-        // added for mo2
         int maxOverallMem;
         int memPerFrame;
         int minMemPerProc;
         int maxMemPerProc;
 
-        // Constructor with default values
         Configuration() :
             numCpu(0),
             scheduler(""),
@@ -66,19 +57,19 @@ private:
             minIns(0),
             maxIns(0),
             delayPerExec(0),
-            // added for mo2
             maxOverallMem(0),
             memPerFrame(0),
             minMemPerProc(0),
-            maxMemPerProc(0){}
+            maxMemPerProc(0) {}
     };
 
     Configuration config;
 
     void createProcess(std::string processName);
 
-    //report util
+    // report utility
     std::vector<std::string> screenListHist;
+
 public:
     MainConsole();
     void onEnabled() override;
@@ -86,19 +77,19 @@ public:
     void process() override;
     void menu() const;
     void enter() const;
-    //void color(int n) const;
     bool isInitialized;
     std::shared_ptr<Scheduler> schedulerInstance;
     CPUCycle cpuCycle;
-    std::vector<std::shared_ptr<Process>> processes;
+
+    // Update to use AttachedProcess instead of Process
+    std::vector<std::shared_ptr<AttachedProcess>> processes;
     int nextPid = 1;
+
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
-    //void startProcessing();
-    //void stopProcessing();
 
-    void schedulerTest();  
-    void schedulerStop(); 
+    void schedulerTest();
+    void schedulerStop();
 };
 
 #endif // MAIN_CONSOLE_H

@@ -24,33 +24,26 @@ FlatMemoryAllocator::~FlatMemoryAllocator() {
 void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     size_t size = process->getMemoryRequirement();
 
-    // Ensure the memory requirement is valid and there’s enough available space
     if (size == 0 || allocatedSize + size > maximumSize) {
         throw std::bad_alloc();
     }
 
-    // Search for a suitable free block in the memory
     for (size_t i = 0; i <= maximumSize - size; ++i) {
         if (canAllocateAt(i, size)) {
-            // Mark this block as allocated in the allocationMap
             std::fill(allocationMap.begin() + i, allocationMap.begin() + i + size, true);
             allocatedSize += size;
 
-            // Assign the memory address to the process and log it
             void* allocatedMemory = &memory[i];
             process->setMemoryLocation(allocatedMemory);
 
-            std::cout << "Allocated process " << process->getPid()
-                << " at unique location: " << allocatedMemory
-                << " (starting at index " << i << "), for " << size << " bytes." << std::endl;
+            allocatedMemoryMap[reinterpret_cast<size_t>(allocatedMemory)] = size;
 
-            visualMemory(); // REMOVE IF NOT DEBUGGING
+            // visualMemory(); // For debugging visual representation of allocations
             return allocatedMemory;
         }
     }
 
-    // If no suitable block is found, throw an error
-    throw std::bad_alloc();
+    throw std::bad_alloc(); 
 }
 
 void FlatMemoryAllocator::visualMemory() const {
@@ -62,17 +55,34 @@ void FlatMemoryAllocator::visualMemory() const {
 }
 
 void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
-    void* ptr = process->getMemoryLocation();
-    size_t index = static_cast<char*>(ptr) - memory.data();
+    if (process->getMemoryLocation() != nullptr) {
+        size_t memoryAddress = reinterpret_cast<size_t>(process->getMemoryLocation());
 
-    if (index < maximumSize && allocationMap[index]) {
-        deallocateAt(index);
-        process->setMemoryLocation(nullptr);  // Clear the memory location in the process
+        auto it = allocatedMemoryMap.find(memoryAddress);
+        if (it != allocatedMemoryMap.end()) {
+            size_t size = it->second;
+
+            size_t startIndex = reinterpret_cast<uint8_t*>(process->getMemoryLocation()) - reinterpret_cast<uint8_t*>(memory.data());
+            std::fill(allocationMap.begin() + startIndex, allocationMap.begin() + startIndex + size, false);
+            allocatedSize -= size;
+
+            allocatedMemoryMap.erase(it);
+
+            process->setMemoryLocation(nullptr);
+        }
+        else {
+            std::cerr << "Warning: Memory location " << memoryAddress
+                << " not found in allocated memory map for process "
+                << process->getPid() << std::endl;
+        }
     }
     else {
-        throw std::invalid_argument("Pointer not allocated by this allocator.");
+        std::cerr << "Warning: Attempting to deallocate memory that is already nullptr for process "
+            << process->getPid() << std::endl;
     }
 }
+
+
 
 void FlatMemoryAllocator::initializeMemory() {
     std::fill(allocationMap.begin(), allocationMap.end(), false);

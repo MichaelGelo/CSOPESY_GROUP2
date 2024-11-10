@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
-#include "Process.h"
+#include "AttachedProcess.h"
 #include "Scheduler.h"
 #include "FlatMemoryAllocator.h"
 #include "CPUCore.h"
@@ -46,38 +46,28 @@ void logMessage(const std::string& message) {
 
 // FOR DEBUGGING PURPOSES ONLY
 
-bool Scheduler::attachProcessToMemory(std::shared_ptr<Process>& process) {
-    int requiredMemory = process->getMemoryRequirement();
+bool Scheduler::attachProcessToMemory(std::shared_ptr<AttachedProcess>& process) {
 
-    // Log the attempt to allocate memory for this process
-    logMessage("Attempting to attach process " + std::to_string(process->getPid()) +
-        " with memory requirement: " + std::to_string(requiredMemory) + " bytes");
+    int requiredMemory = process->getMemoryRequirement();
+    logMessage("Attempting to attach process " + std::to_string(process->getPid()) + " with memory requirement: " + std::to_string(requiredMemory) + " bytes");
 
     if (memoryAllocator->getFreeMemory() >= requiredMemory) {
-        auto attachedProcess = std::make_shared<AttachedProcess>(
-            process->getPid(),
-            process->getScreenName(),
-            process->getCore(),
-            process->getMaxLines(),
-            process->getMemoryRequirement()
-        );
-
         try {
-            void* memoryLocation = memoryAllocator->allocate(attachedProcess);
+            void* memoryLocation = memoryAllocator->allocate(process);
             if (memoryLocation) {
+                process->setMemoryLocation(memoryLocation);
 
-                attachedProcess->setMemoryLocation(memoryLocation);
+                logMessage("Memory location set for process " +
+                    std::to_string(process->getPid()) +
+                    " at address: " + std::to_string(reinterpret_cast<uintptr_t>(process->getMemoryLocation())) + "\n");
 
-                logMessage("Memory location initially set for process " +
-                    std::to_string(attachedProcess->getPid()) +
-                    " at address: " + std::to_string(reinterpret_cast<uintptr_t>(attachedProcess->getMemoryLocation())));
 
-                logMessage("Memory location for process " + std::to_string(attachedProcess->getPid()) +
-                    " after updating reference: " + std::to_string(reinterpret_cast<uintptr_t>(attachedProcess->getMemoryLocation())));
-
-                logMessage("Current Memory Layout:\n" + getMemoryPrintout());
-
+               // logMessage("Current Memory Layout:\n" + getMemoryPrintout());
                 return true;
+            }
+            else {
+                std::cerr << "Error: Memory allocation failed, received nullptr." << std::endl;
+                logMessage("Memory allocation failed, received nullptr.");
             }
         }
         catch (const std::bad_alloc&) {
@@ -86,16 +76,9 @@ bool Scheduler::attachProcessToMemory(std::shared_ptr<Process>& process) {
         }
     }
 
-    std::cerr << "Insufficient memory for process " << process->getPid() << std::endl;
     logMessage("Insufficient memory for process " + std::to_string(process->getPid()));
-
-    logMessage("Current Memory Layout after failed allocation attempt:\n" + getMemoryPrintout());
-
     return false;
 }
-
-
-
 
 
 // Remove quotes from a string
@@ -145,7 +128,7 @@ Scheduler::~Scheduler() {
 }
 
 // Add process to the ready queue
-void Scheduler::addToRQ(std::shared_ptr<Process> process) {
+void Scheduler::addToRQ(std::shared_ptr<AttachedProcess> process) {
     if (!process) {
         std::cerr << "Error: Trying to add a nullptr process to the ready queue." << std::endl;
         return;
@@ -155,6 +138,7 @@ void Scheduler::addToRQ(std::shared_ptr<Process> process) {
     rq.push(process);
     rqCondition.notify_all();
 }
+
 
 
 // Implement FCFS scheduling
@@ -167,7 +151,7 @@ void Scheduler::fcfs() {
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     while (schedulerStatus) {
-        generateMemoryReport();
+       // generateMemoryReport();
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -175,18 +159,18 @@ void Scheduler::listenForCycle() {
         if (!schedulerStatus) break;
 
         for (auto& core : cores) {
-            if (!core) continue; // Ensure core is valid
+            if (!core) continue;
             if (!core->getIsBusy()) {
                 std::unique_lock<std::mutex> rqLock(rqMutex);
                 if (!rq.empty()) {
-                    auto process = rq.front();
+                    auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(rq.front());
                     rq.pop();
                     rqLock.unlock();
 
-                    if (process) { // Ensure process is valid
-                        core->assignProcess(process);
-                        process->setCore(core->getCoreID());
-                        process->switchState(Process::RUNNING);
+                    if (attachedProcess) {
+                        core->assignProcess(attachedProcess);
+                        attachedProcess->setCore(core->getCoreID());
+                        attachedProcess->switchState(Process::RUNNING);
                         core->setIsBusy(true);
                     }
                 }
@@ -194,6 +178,7 @@ void Scheduler::listenForCycle() {
         }
     }
 }
+
 
 // Stop the scheduler
 void Scheduler::schedulerStop() {
@@ -205,63 +190,6 @@ void Scheduler::schedulerStop() {
     }
     cpuCycle.getConditionVariable().notify_all();
 }
-
-
-// Implement Round Robin (RR) scheduling
-/*void Scheduler::rr() {
-    std::cout << "Scheduler started with Round Robin (RR) algorithm." << std::endl;
-    schedulerStatus = true;
-
-    std::thread([this]() {
-        while (schedulerStatus) {
-            std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
-            cpuCycle.getConditionVariable().wait(lock, [this] {
-                return !schedulerStatus || cpuCycle.isRunning() || !rq.empty();
-                });
-
-            if (!schedulerStatus) break;
-
-            for (auto& core : cores) {
-                // Handle the currently running process
-                if (core->getIsBusy()) {
-                    core->incrementQuantumUsed();
-                    core->checkAndRunProcess();
-
-                    if (delayPerExec > 0) {
-                        std::this_thread::sleep_for(std::chrono::microseconds(delayPerExec));
-                    }
-
-                    // Check if quantum is exhausted or process has finished
-                    if (core->getQuantumUsed() >= quantumCycles ||
-                        (core->getCurrentProcess() && core->getCurrentProcess()->hasFinished())) {
-
-                        auto currentProcess = core->getCurrentProcess();
-                        if (currentProcess && !currentProcess->hasFinished()) {
-                            std::unique_lock<std::mutex> rqLock(rqMutex);
-                            rq.push(currentProcess);
-                        }
-                        core->clearProcess();
-                    }
-                }
-
-                // If core is free, assign a new process from the ready queue
-                if (!core->getIsBusy()) {
-                    std::unique_lock<std::mutex> rqLock(rqMutex);
-                    if (!rq.empty()) {
-                        auto process = rq.front();
-                        rq.pop();
-                        rqLock.unlock();
-
-                        core->assignProcess(process);
-                        core->resetQuantumUsed();
-                        process->switchState(Process::RUNNING);
-                    }
-                }
-            }
-        }
-        }).detach();
-}
-*/
 
 void Scheduler::rr() {
     std::cout << "Scheduler started with Round Robin algorithm." << std::endl;
@@ -275,48 +203,37 @@ void Scheduler::listenForCycleRR() {
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(rqMutex);
 
-        // for mo2
-        generateMemoryReport();
-           
-        // Wait until there are processes or scheduler is stopped
+       // generateMemoryReport();
+
         rqCondition.wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
             });
 
         if (!schedulerStatus) break;
 
-        // Check for available cores
         for (auto& core : cores) {
             if (!core->getIsBusy() && !rq.empty()) {
-                auto process = rq.front();
+                auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(rq.front());
                 rq.pop();
+
+                if (!attachedProcess) {
+                    std::cerr << "Error: Process cannot be cast to AttachedProcess." << std::endl;
+                    continue;
+                }
+
                 lock.unlock();
 
-                // Assign process to core
-                core->assignProcess(process);
-                process->setCore(core->getCoreID());
-                process->switchState(Process::RUNNING);
+                core->assignProcess(attachedProcess);
+                attachedProcess->setCore(core->getCoreID());
+                attachedProcess->switchState(Process::RUNNING);
                 core->setIsBusy(true);
 
-                // Requeue the process if it hasn't completed
-                /*std::thread([this, process, &core]() {
-                    // Wait for the process to complete its time quantum
-                    std::this_thread::sleep_for(std::chrono::milliseconds(quantumCycles));
-
-                    // If process is not complete, move back to queue
-                    if (process->getRemainingInstructions() > 0) {
-                        process->switchState(Process::WAITING);
-                        std::lock_guard<std::mutex> requeueLock(rqMutex);
-                        rq.push(process);
-                        core->setIsBusy(false);
-                        rqCondition.notify_all();
-                    }
-                */
-                break; // Assign to one core at a time
+                break;
             }
         }
     }
 }
+
 
 void Scheduler::generateMemoryReport() {
     //std::cout << "Printing to file memory log...\n"; // for debugging lng, can remove
@@ -340,7 +257,7 @@ void Scheduler::generateMemoryReport() {
     reportFile << "Total external fragmentation in KB: " << totalExternalFragmentation << "\n";
 
     // An ASCII printout of the memory
-    reportFile << getMemoryPrintout() << "\n";
+   // reportFile << getMemoryPrintout() << "\n";
 
     reportFile.close();
 }

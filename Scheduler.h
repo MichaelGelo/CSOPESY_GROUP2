@@ -98,7 +98,7 @@ public:
     //void schedulerTest();                           
     void displayConfiguration();                    
     void schedulerStop();                           
-    void addToRQ(std::shared_ptr<Process> process);  
-    bool attachProcessToMemory(std::shared_ptr<Process>& process);
+    void addToRQ(std::shared_ptr<AttachedProcess> process);
+    bool attachProcessToMemory(std::shared_ptr<AttachedProcess>& process);
 
 };
