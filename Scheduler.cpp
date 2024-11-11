@@ -12,6 +12,7 @@
 #include <ctime>
 #include <memory>
 #include <unordered_set> 
+#include <filesystem>
 
 // Display scheduler configuration
 void Scheduler::displayConfiguration() {
@@ -156,8 +157,11 @@ void Scheduler::fcfs() {
 
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
+    int currentQuantumCycle = 1;
     while (schedulerStatus) {
-       // generateMemoryReport();
+        generateMemoryReport(currentQuantumCycle);
+        currentQuantumCycle++;
+
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -206,10 +210,12 @@ void Scheduler::rr() {
 }
 
 void Scheduler::listenForCycleRR() {
+    int currentQuantumCycle = 1;
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(rqMutex);
 
-       // generateMemoryReport();
+        generateMemoryReport(currentQuantumCycle);
+        currentQuantumCycle++;
 
         rqCondition.wait(lock, [this] {
             return !schedulerStatus || !rq.empty();
@@ -241,14 +247,39 @@ void Scheduler::listenForCycleRR() {
 }
 
 
-void Scheduler::generateMemoryReport() {
+void Scheduler::generateMemoryReport(int currentQuantumCycle) {
     //std::cout << "Printing to file memory log...\n"; // for debugging lng, can remove
 
-    std::ofstream reportFile("memory_report.txt", std::ios::app);
+    static bool firstRun = true;
+    std::string directoryPath = "./Memory_Stamps";
+
+    // Delete the contents of the directory if it's the first run
+    if (firstRun) {
+        try {
+            if (std::filesystem::exists(directoryPath)) {
+                for (const auto& entry : std::filesystem::directory_iterator(directoryPath)) {
+                    std::filesystem::remove_all(entry.path());
+                }
+            }
+            else {
+                std::filesystem::create_directory(directoryPath);
+            }
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
+        }
+        firstRun = false;
+    }
+
+    std::ostringstream fileNameStream;
+    fileNameStream << directoryPath << "/memory_stamp_" << currentQuantumCycle << ".txt";
+    std::string fileName = fileNameStream.str();
+    std::ofstream reportFile(fileName, std::ios::out);
     if (!reportFile.is_open()) {
-        std::cerr << "Failed to open report file." << std::endl;
+        std::cerr << "Failed to open report file: " << fileName << std::endl;
         return;
     }
+
     // Timestamp
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
@@ -263,7 +294,7 @@ void Scheduler::generateMemoryReport() {
     reportFile << "Total external fragmentation in KB: " << totalExternalFragmentation << "\n";
 
     // An ASCII printout of the memory
-   // reportFile << getMemoryPrintout() << "\n";
+    reportFile << getMemoryPrintout() << "\n";
 
     reportFile.close();
 }
@@ -321,13 +352,6 @@ std::string Scheduler::getMemoryPrintout() {
     size_t totalMemory = memoryAllocator->getMaximumSize();
     size_t frameSize = memoryAllocator->getMemoryPerFrame(); 
     size_t externalFragmentation = 0;
-
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    output << "Timestamp: (" << std::put_time(std::localtime(&now_c), "%m/%d/%Y %I:%M:%S%p") << ")\n";
-
-    int numProcessesInMemory = calculateProcessesInMemory();
-    output << "Number of processes in memory: " << numProcessesInMemory << "\n";
 
     output << "----end---- = " << totalMemory << "\n";
 

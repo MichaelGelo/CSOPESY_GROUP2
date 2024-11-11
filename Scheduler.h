@@ -52,7 +52,7 @@ private:
     void listenForCycleRR();
     void stopAllCores();                          // Stops all cores and joins threads
 
-    void generateMemoryReport();
+    void generateMemoryReport(int currentQuantumCycle);
     int calculateProcessesInMemory();
     int calculateExternalFragmentation();
     std::string getMemoryPrintout();
