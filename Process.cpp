@@ -10,7 +10,7 @@
 Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement)
     : pid(pid), screenName(std::move(screenName)), core(core),
       maxLines(maxLines), curLines(0), isFinished(false),
-      state(READY), memoryRequirement(memoryRequirement) {
+      state(READY), memoryRequirement(memoryRequirement), isAllocated(false){
 }
 
 Process::Process(Process&& other) noexcept
@@ -18,11 +18,12 @@ Process::Process(Process&& other) noexcept
     core(other.core), maxLines(other.maxLines),
     curLines(other.curLines), isFinished(other.isFinished),
     state(other.state), memoryRequirement(other.memoryRequirement),
-    memoryPointer(other.memoryPointer) 
+    memoryPointer(other.memoryPointer), isAllocated(other.isAllocated)
 {
     other.pid = -1;
     other.isFinished = false;
     other.memoryPointer = nullptr;
+    other.isAllocated = false;
 }
 
 Process& Process::operator=(Process&& other) noexcept {
@@ -35,11 +36,13 @@ Process& Process::operator=(Process&& other) noexcept {
         isFinished = other.isFinished;
         state = other.state;
         memoryRequirement = other.memoryRequirement;
-        memoryPointer = other.memoryPointer;  
+        memoryPointer = other.memoryPointer; 
+        isAllocated = other.isAllocated;
 
         other.pid = -1;
         other.isFinished = false;
         other.memoryPointer = nullptr;
+        other.isAllocated = false;
     }
     return *this;
 }
@@ -179,4 +182,16 @@ int Process::getRemainingInstructions() const {
 
 int Process::getMemoryRequirement() const {
     return memoryRequirement;
+}
+
+bool Process::hasAllocated() const {
+    return isAllocated;
+}
+
+void Process::allocateResources() {
+    isAllocated = true;
+}
+
+void Process::deallocateResources() {
+    isAllocated = false;
 }

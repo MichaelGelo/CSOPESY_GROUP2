@@ -77,8 +77,8 @@ void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
         }
     }
     else {
-        std::cerr << "Warning: Attempting to deallocate memory that is already nullptr for process "
-            << process->getPid() << std::endl;
+       // std::cerr << "Warning: Attempting to deallocate memory that is already nullptr for process "
+         //   << process->getPid() << std::endl;
     }
 }
 

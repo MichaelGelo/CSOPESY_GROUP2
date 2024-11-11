@@ -22,6 +22,7 @@ private:
     int memoryRequirement;
 
     void* memoryPointer = nullptr;
+    bool isAllocated;
 
 public:
     enum ProcessState {
@@ -67,7 +68,9 @@ public:
 
     virtual void* getMemoryLocation() const { return memoryPointer; }
     virtual void setMemoryLocation(void* location) { memoryPointer = location; }
-
+    bool hasAllocated() const;
+    void allocateResources();
+    void deallocateResources();
     virtual ~Process() = default;
 };
 

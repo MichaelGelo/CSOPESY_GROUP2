@@ -37,6 +37,7 @@ void CPUCore::removeProcessIfDone() {
                 currentProcess->switchState(Process::FINISHED);
             }
 
+            if (currentProcess->hasFinished())
             memoryAllocator->deallocate(currentProcess);
 
             clearProcess();

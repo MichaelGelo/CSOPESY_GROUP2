@@ -47,6 +47,10 @@ void logMessage(const std::string& message) {
 // FOR DEBUGGING PURPOSES ONLY
 
 bool Scheduler::attachProcessToMemory(std::shared_ptr<AttachedProcess>& process) {
+    if (process->hasAllocated()) {
+        logMessage("Process " + std::to_string(process->getPid()) + " is already attached to memory.");
+        return true; // Already attached, no need to attach again
+    }
 
     int requiredMemory = process->getMemoryRequirement();
     logMessage("Attempting to attach process " + std::to_string(process->getPid()) + " with memory requirement: " + std::to_string(requiredMemory) + " bytes");
@@ -55,6 +59,8 @@ bool Scheduler::attachProcessToMemory(std::shared_ptr<AttachedProcess>& process)
         try {
             void* memoryLocation = memoryAllocator->allocate(process);
             if (memoryLocation) {
+                process->allocateResources();
+
                 process->setMemoryLocation(memoryLocation);
 
                 logMessage("Memory location set for process " +
