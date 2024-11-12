@@ -157,10 +157,10 @@ void Scheduler::fcfs() {
 
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
-    int currentQuantumCycle = 1;
+    //int currentQuantumCycle = 1;
     while (schedulerStatus) {
         //generateMemoryReport(currentQuantumCycle);
-        currentQuantumCycle++;
+        //currentQuantumCycle++;
 
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
@@ -211,12 +211,12 @@ void Scheduler::rr() {
 //====================================================================================================
 //====================================================================================================
 void Scheduler::listenForCycleRR() {
-    int currentQuantumCycle = 1;
+    //int currentQuantumCycle = 1;
     while (schedulerStatus) {
         std::unique_lock<std::mutex> lock(rqMutex);
 
-        generateMemoryReport(currentQuantumCycle);
-        currentQuantumCycle++;
+        //generateMemoryReport(currentQuantumCycle);
+        //currentQuantumCycle++;
 
         rqCondition.wait(lock, [this] {
             return !schedulerStatus || !rq.empty();

@@ -1156,3 +1156,43 @@ Process 1 is already attached to memory.
 Process 1 is already attached to memory.
 Process 1 is already attached to memory.
 Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 4000 bytes
+Memory location set for process 1 at address: 2535548643200
+
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 4000 bytes
+Memory location set for process 1 at address: 2365623832096
+
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 4000 bytes
+Memory location set for process 1 at address: 2519482954496
+
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 4000 bytes
+Memory location set for process 1 at address: 1536110490368
+
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 4000 bytes
+Memory location set for process 1 at address: 1911920586720
+
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.
+Process 1 is already attached to memory.

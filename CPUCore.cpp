@@ -26,6 +26,7 @@ void CPUCore::checkAndRunProcess() {
 }
 
 void CPUCore::removeProcessIfDone() {
+    static int currentQuantumCycle = 1;
     if (currentProcess) {
         bool processNeedsDeallocation = currentProcess->hasFinished() || 
             (scheduler->isRoundRobin() && isQuantumExpired());
@@ -34,6 +35,8 @@ void CPUCore::removeProcessIfDone() {
             if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
                 currentProcess->switchState(Process::READY);
                 scheduler->addToRQ(currentProcess);
+                scheduler->generateMemoryReport(currentQuantumCycle);
+                currentQuantumCycle++;
             } else {
                 currentProcess->switchState(Process::FINISHED);
             }
