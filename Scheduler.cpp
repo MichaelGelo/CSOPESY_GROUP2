@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <set>
 #include <iostream>
 #include <thread>
 #include "AttachedProcess.h"
@@ -239,14 +240,12 @@ void Scheduler::listenForCycleRR() {
                 lock.unlock();
                 if (attachedProcess->getMemoryRequirement() > memoryAllocator->getFreeMemory() && !attachedProcess->hasAllocated()) {
                     rq.push(attachedProcess);
-                    std::cout << "pushed" << std::endl;
                 }
                 else {
                     core->assignProcess(attachedProcess);
                     attachedProcess->setCore(core->getCoreID());
                     attachedProcess->switchState(Process::RUNNING);
                     core->setIsBusy(true);
-                    std::cout << "cored" << std::endl;
                 }
                 break;
             }
@@ -310,79 +309,67 @@ void Scheduler::generateMemoryReport(int currentQuantumCycle) {
 
 
 int Scheduler::calculateProcessesInMemory() {
-    int processCount = 0;
-
-    // Loop through the memory partitions and count allocated processes
+    std::set<int> uniqueProcessIds;
     auto memoryPartitions = memoryAllocator->getMemoryPartitions();
     for (const auto& partition : memoryPartitions) {
-        if (partition.process != nullptr) { // Only count if a process is assigned
-            processCount++;
+        if (partition.process != nullptr) {
+            uniqueProcessIds.insert(partition.process->getPid());
         }
     }
-
-    return processCount;
+    return static_cast<int>(uniqueProcessIds.size());
 }
-
 
 int Scheduler::calculateExternalFragmentation() {
-    // Retrieve total memory information
     size_t totalMemory = memoryAllocator->getMaximumSize();
-    size_t allocatedMemory = memoryAllocator->getAllocatedSize();
-    size_t freeMemory = totalMemory - allocatedMemory; // Total free memory
-    size_t minimumAllocatableSize = 4096; // Your defined minimum allocation size
-    size_t externalFragmentation = 0; // Initialize external fragmentation counter
+    size_t minimumAllocatableSize = memoryAllocator->getMinimumAllocatableSize();  // memPerProc (4096 bytes)
+    size_t externalFragmentation = 0;
+    size_t currentFreeBlockSize = 0;
+    bool inFreeBlock = false;
 
-    // Loop through the allocation map to find free blocks
-    for (size_t i = 0; i < totalMemory; ++i) {
-        if (!memoryAllocator->isAllocated(i)) { // If the block is free
-            size_t freeBlockSize = 0;
-
-            // Count the size of this contiguous free block
-            while (i < totalMemory && !memoryAllocator->isAllocated(i)) {
-                freeBlockSize++;
-                i++;
+    // Traverse memory in increments of `memoryPerFrame` to identify contiguous free blocks
+    for (size_t i = 0; i < totalMemory; i += memoryAllocator->getMemoryPerFrame()) {
+        if (!memoryAllocator->isAllocated(i)) {  // If block is free
+            currentFreeBlockSize += memoryAllocator->getMemoryPerFrame();
+            inFreeBlock = true;
+        }
+        else if (inFreeBlock) {  // End of a contiguous free block
+            if (currentFreeBlockSize < minimumAllocatableSize) {
+                externalFragmentation += currentFreeBlockSize;  // Accumulate small free block size
             }
-
-            // If the free block is less than the minimum allocatable size, add it to fragmentation
-            if (freeBlockSize < minimumAllocatableSize) {
-                externalFragmentation += freeBlockSize; // Accumulate the size
-            }
+            currentFreeBlockSize = 0;  // Reset free block size for next contiguous block
+            inFreeBlock = false;
         }
     }
 
-    // Return the total external fragmentation
-    return externalFragmentation; // Return in bytes, adjust if needed
+    // Check the last block if it ended as a free block
+    if (inFreeBlock && currentFreeBlockSize < minimumAllocatableSize) {
+        externalFragmentation += currentFreeBlockSize;
+    }
+
+    return static_cast<int>(externalFragmentation);  // Return in bytes
 }
 
 
+// Generate an ASCII representation of the memory
 std::string Scheduler::getMemoryPrintout() {
     std::ostringstream output;
     size_t totalMemory = memoryAllocator->getMaximumSize();
-    size_t frameSize = memoryAllocator->getMemoryPerFrame(); 
-    size_t externalFragmentation = 0;
+    size_t processSize = memoryAllocator->getMinimumAllocatableSize();  // memPerProc (4096 bytes)
 
     output << "----end---- = " << totalMemory << "\n";
 
+    auto memoryPartitions = memoryAllocator->getMemoryPartitions();
+    for (const auto& partition : memoryPartitions) {
+        if (partition.process) {
+            size_t startAddress = partition.slotNumber * memoryAllocator->getMemoryPerFrame();
+            size_t endAddress = startAddress + processSize;
 
-    for (size_t i = 0; i < totalMemory / frameSize; ++i) {
-        size_t startAddress = i * frameSize;
-        std::shared_ptr<AttachedProcess> process = memoryAllocator->getPartitionAt(startAddress).process;
-
-        if (process) {
-            size_t endAddress = startAddress + frameSize;
-            output << endAddress << "\n";          
-            output << "P" << process->getPid() << "\n"; 
-            output << startAddress << "\n";        
-        }
-        else {
-            output << startAddress + frameSize << "\n";
-            output << "\n"; 
-            output << startAddress << "\n"; 
-            externalFragmentation += frameSize; 
+            output << endAddress << "\n";
+            output << "P" << partition.process->getPid() << "\n";
+            output << startAddress << "\n";
         }
     }
-    output << "----start---- = 0\n";
-    output << "Total external fragmentation in KB: " << (externalFragmentation / 1024) << "\n";
 
+    output << "----start---- = 0\n";
     return output.str();
 }

@@ -21,31 +21,6 @@ FlatMemoryAllocator::~FlatMemoryAllocator() {
     memory.clear();
 }
 
-void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
-    size_t size = process->getMemoryRequirement();
-
-    if (size == 0 || allocatedSize + size > maximumSize) {
-        throw std::bad_alloc();
-    }
-
-    for (size_t i = 0; i <= maximumSize - size; ++i) {
-        if (canAllocateAt(i, size)) {
-            std::fill(allocationMap.begin() + i, allocationMap.begin() + i + size, true);
-            allocatedSize += size;
-
-            void* allocatedMemory = &memory[i];
-            process->setMemoryLocation(allocatedMemory);
-
-            allocatedMemoryMap[reinterpret_cast<size_t>(allocatedMemory)] = size;
-
-            // visualMemory(); // For debugging visual representation of allocations
-            return allocatedMemory;
-        }
-    }
-
-    throw std::bad_alloc(); 
-}
-
 void FlatMemoryAllocator::visualMemory() const {
     std::cout << "Allocation Map: ";
     for (bool occupied : allocationMap) {
@@ -54,47 +29,68 @@ void FlatMemoryAllocator::visualMemory() const {
     std::cout << std::endl;
 }
 
-void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
-    if (process->getMemoryLocation() != nullptr) {
-        size_t memoryAddress = reinterpret_cast<size_t>(process->getMemoryLocation());
+void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
+    size_t size = process->getMemoryRequirement();
 
-        auto it = allocatedMemoryMap.find(memoryAddress);
-        if (it != allocatedMemoryMap.end()) {
-            size_t size = it->second;
+    if (size < minMemoryPerProc || size == 0 || allocatedSize + size > maximumSize) {
+        throw std::bad_alloc();
+    }
 
-            size_t startIndex = reinterpret_cast<uint8_t*>(process->getMemoryLocation()) - reinterpret_cast<uint8_t*>(memory.data());
-            std::fill(allocationMap.begin() + startIndex, allocationMap.begin() + startIndex + size, false);
-            allocatedSize -= size;
+    for (size_t i = 0; i <= maximumSize - size; i += memoryPerFrame) {
+        if (canAllocateAt(i, size)) {
+            std::fill(allocationMap.begin() + i, allocationMap.begin() + i + size, true);
+            allocatedSize += size;
 
-            allocatedMemoryMap.erase(it);
+            void* allocatedMemory = &memory[i];
+            process->setMemoryLocation(allocatedMemory);
 
-            process->setMemoryLocation(nullptr);
-        }
-        else {
-            std::cerr << "Warning: Memory location " << memoryAddress
-                << " not found in allocated memory map for process "
-                << process->getPid() << std::endl;
+            allocatedMemoryMap[reinterpret_cast<size_t>(allocatedMemory)] = size;
+            memoryPartitions.push_back({ static_cast<uint32_t>(i / memoryPerFrame), false, process });
+
+            return allocatedMemory;
         }
     }
-    else {
-       // std::cerr << "Warning: Attempting to deallocate memory that is already nullptr for process "
-         //   << process->getPid() << std::endl;
-    }
+    throw std::bad_alloc();
 }
 
+void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
+    size_t memoryAddress = reinterpret_cast<size_t>(process->getMemoryLocation());
+    auto it = allocatedMemoryMap.find(memoryAddress);
 
+    if (it != allocatedMemoryMap.end()) {
+        size_t size = it->second;
+        size_t startIndex = reinterpret_cast<char*>(process->getMemoryLocation()) - memory.data();  // Cast to char*
+
+        std::fill(allocationMap.begin() + startIndex, allocationMap.begin() + startIndex + size, false);
+        allocatedSize -= size;
+
+        allocatedMemoryMap.erase(it);
+        process->setMemoryLocation(nullptr);
+
+        for (auto& partition : memoryPartitions) {
+            if (partition.slotNumber == startIndex / memoryPerFrame && partition.process == process) {
+                partition.isAllocatable = true;
+                partition.process = nullptr;
+                break;
+            }
+        }
+    }
+}
 
 void FlatMemoryAllocator::initializeMemory() {
     std::fill(allocationMap.begin(), allocationMap.end(), false);
+    memoryPartitions.clear();
+    for (size_t i = 0; i < maximumSize; i += memoryPerFrame) {
+        memoryPartitions.push_back({ static_cast<uint32_t>(i / memoryPerFrame), true, nullptr });
+    }
 }
 
 bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size) const {
-    // Ensure block is within bounds and not occupied
-    if (index + size > allocationMap.size()) return false;
+    if (index % memoryPerFrame != 0 || index + size > allocationMap.size()) return false;
     for (size_t i = index; i < index + size; ++i) {
-        if (allocationMap[i]) return false;  
+        if (allocationMap[i]) return false;
     }
-    return true;  
+    return true;
 }
 
 void FlatMemoryAllocator::deallocateAt(size_t index) {
@@ -103,7 +99,7 @@ void FlatMemoryAllocator::deallocateAt(size_t index) {
         allocationMap[index + size] = false;
         ++size;
     }
-    allocatedSize -= size; 
+    allocatedSize -= size;
 }
 
 int FlatMemoryAllocator::getAllocatedSize() const {
@@ -127,10 +123,10 @@ int FlatMemoryAllocator::getMemoryPerFrame() const {
 }
 
 MemoryPartition FlatMemoryAllocator::getPartitionAt(int index) const {
-    if (index >= 0 && index < memoryPartitions.size()) {
+    if (index >= 0 && index < static_cast<int>(memoryPartitions.size())) {
         return memoryPartitions[index];
     }
-    return MemoryPartition{};  
+    return MemoryPartition{};
 }
 
 int FlatMemoryAllocator::getMinimumAllocatableSize() const {
@@ -138,8 +134,8 @@ int FlatMemoryAllocator::getMinimumAllocatableSize() const {
 }
 
 bool FlatMemoryAllocator::isAllocated(size_t index) const {
-    if (index < 0 || index >= allocationMap.size()) {
+    if (index >= allocationMap.size()) {
         throw std::out_of_range("Index out of range");
     }
-    return allocationMap[index]; 
+    return allocationMap[index];
 }
