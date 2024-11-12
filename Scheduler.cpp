@@ -366,7 +366,7 @@ std::string Scheduler::getMemoryPrintout() {
 
             output << endAddress << "\n";
             output << "P" << partition.process->getPid() << "\n";
-            output << startAddress << "\n";
+            output << startAddress << "\n\n";
         }
     }
 
