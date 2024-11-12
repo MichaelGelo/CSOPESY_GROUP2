@@ -9,10 +9,11 @@ void CPUCore::assignProcess(std::shared_ptr<AttachedProcess> process) {
         std::cout << "Not enough memory to attach process " << process->getPid() << " to memory." << std::endl;
         return;
     }
-
-    currentProcess = process;
-    isBusy = true;
-    quantumUsed = 0;
+    else {
+        currentProcess = process;
+        isBusy = true;
+        quantumUsed = 0;
+    }
 }
 
 void CPUCore::checkAndRunProcess() {

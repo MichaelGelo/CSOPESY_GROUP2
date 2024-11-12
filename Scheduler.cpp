@@ -159,7 +159,7 @@ void Scheduler::fcfs() {
 void Scheduler::listenForCycle() {
     int currentQuantumCycle = 1;
     while (schedulerStatus) {
-        generateMemoryReport(currentQuantumCycle);
+        //generateMemoryReport(currentQuantumCycle);
         currentQuantumCycle++;
 
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
@@ -208,7 +208,8 @@ void Scheduler::rr() {
     // Start the cycle listener thread specifically for Round Robin
     std::thread(&Scheduler::listenForCycleRR, this).detach();
 }
-
+//====================================================================================================
+//====================================================================================================
 void Scheduler::listenForCycleRR() {
     int currentQuantumCycle = 1;
     while (schedulerStatus) {
@@ -225,6 +226,8 @@ void Scheduler::listenForCycleRR() {
 
         for (auto& core : cores) {
             if (!core->getIsBusy() && !rq.empty()) {
+                
+                
                 auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(rq.front());
                 rq.pop();
 
@@ -234,12 +237,17 @@ void Scheduler::listenForCycleRR() {
                 }
 
                 lock.unlock();
-
-                core->assignProcess(attachedProcess);
-                attachedProcess->setCore(core->getCoreID());
-                attachedProcess->switchState(Process::RUNNING);
-                core->setIsBusy(true);
-
+                if (attachedProcess->getMemoryRequirement() > memoryAllocator->getFreeMemory() && !attachedProcess->hasAllocated()) {
+                    rq.push(attachedProcess);
+                    std::cout << "pushed" << std::endl;
+                }
+                else {
+                    core->assignProcess(attachedProcess);
+                    attachedProcess->setCore(core->getCoreID());
+                    attachedProcess->switchState(Process::RUNNING);
+                    core->setIsBusy(true);
+                    std::cout << "cored" << std::endl;
+                }
                 break;
             }
         }

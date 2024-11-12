@@ -314,7 +314,7 @@ void MainConsole::schedulerStop() {
 
 void MainConsole::runSchedulerTest() {
     int processCounter = 1;
-    const float MAXLOAD_THRESHOLD = 0.95;  // 75% CPU utilization threshold
+    const float MAXLOAD_THRESHOLD = 1;  // 75% CPU utilization threshold
 
     while (isSchedulerTestRunning && isCPURunning) {
         std::unique_lock<std::mutex> lock(cpuCycle.mtx);
