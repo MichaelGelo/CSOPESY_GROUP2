@@ -283,9 +283,13 @@ void MainConsole::process() {
         display();
         return;
     }
-    // else if (command == "history") {
-    //     showHistory();
-    // }
+    else if (command == "vmstat") {
+        captureAndStoreOutput([this]() {
+            vmstat();
+            });
+        display();
+        return;
+    }
     else if (!command.empty()) {
     commandHist.push_back(command);
     }
@@ -551,3 +555,32 @@ void MainConsole::processSMI() const {
     }
     std::cout << "------------------------------------------------------------------------------------\n";
 }
+
+void MainConsole::vmstat() const {
+
+    float maxOverallMem = config.maxOverallMem;
+    float memUsed = 0;
+
+
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::RUNNING) {
+            memUsed += process->getMemoryRequirement();
+        }
+    }
+
+    int totalCpuTicks = cpuCycle.getCurrentCycle();
+    int activeCpuTicks = cpuCycle.getActiveCycleCount();
+    std::cout << "------------------------------------------------------------------------------------\n";
+    std::cout << "VMSTAT\n";
+    std::cout << GREEN << "\nTotal Memory: " << maxOverallMem << std::endl;
+    std::cout << "Used Memory: " << memUsed << std::endl;
+    std::cout << "Free Memory: " << maxOverallMem  - memUsed << std::endl;
+    std::cout << "Idle CPU Ticks: " << std::endl;
+    std::cout << "Active CPU Ticks: " << activeCpuTicks << std::endl;
+    std::cout << "Total CPU Ticks: " << totalCpuTicks << std::endl;
+    std::cout << "Num Paged In: " << std::endl;
+    std::cout << "Num Paged Out: " << RESET << std::endl;
+    std::cout << "------------------------------------------------------------------------------------\n";
+}
+

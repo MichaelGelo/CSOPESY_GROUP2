@@ -23,6 +23,7 @@ private:
     void clear();
     void saveProcessReport() const;
     void processSMI() const;
+    void vmstat() const;
     std::map<std::string, AttachedProcess*> processQueue;
 
     std::vector<std::thread> cpuThreads;

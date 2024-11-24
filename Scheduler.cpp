@@ -159,9 +159,19 @@ void Scheduler::fcfs() {
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     //int currentQuantumCycle = 1;
+
     while (schedulerStatus) {
         //generateMemoryReport(currentQuantumCycle);
         //currentQuantumCycle++;
+        {
+            // Check if any core is busy and increment active ticks if true
+            for (const auto& core : cores) {
+                if (core && core->getIsBusy()) {
+                    cpuCycle.incrementActiveCycle();
+                    break; // Increment only once per cycle if any core is busy
+                }
+            }
+        }
 
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
@@ -214,6 +224,17 @@ void Scheduler::rr() {
 void Scheduler::listenForCycleRR() {
     //int currentQuantumCycle = 1;
     while (schedulerStatus) {
+
+        {
+            // Check if any core is busy and increment active ticks if true
+            for (const auto& core : cores) {
+                if (core && core->getIsBusy()) {
+                    cpuCycle.incrementActiveCycle();
+                    break; // Increment only once per cycle if any core is busy
+                }
+            }
+        }
+
         std::unique_lock<std::mutex> lock(rqMutex);
 
         //generateMemoryReport(currentQuantumCycle);

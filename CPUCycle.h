@@ -21,9 +21,11 @@ public:
     mutable std::mutex mtx;
     std::condition_variable cv;      
 
+    int getActiveCycleCount() const;  // Active ticks
+    void incrementActiveCycle();  // Increment active ticks
 private:
     void runCycles();          
-
+    std::atomic<int> activeCycleCount;  // Active ticks
     std::atomic<int> cycleCount;
     bool running;                   
     std::thread clockThread;        

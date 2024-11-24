@@ -2,7 +2,7 @@
 #include <iostream>
 #include <chrono>
 
-CPUCycle::CPUCycle() : cycleCount(0), running(false), cycleDelay(5) {}
+CPUCycle::CPUCycle() : cycleCount(0), activeCycleCount(0), running(false), cycleDelay(5) {}
 
 CPUCycle::~CPUCycle() {
     stopClock();
@@ -29,6 +29,14 @@ void CPUCycle::stopClock() {
 
 int CPUCycle::getCurrentCycle() const {
     return cycleCount.load();  // Atomic load
+}
+
+int CPUCycle::getActiveCycleCount() const {
+    return activeCycleCount.load();  // Active cycles
+}
+
+void CPUCycle::incrementActiveCycle() {
+    activeCycleCount++;  // Increment active cycle count
 }
 
 void CPUCycle::setCycleDelay(int delayMicroseconds) {
