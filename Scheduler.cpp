@@ -164,12 +164,15 @@ void Scheduler::listenForCycle() {
         //generateMemoryReport(currentQuantumCycle);
         //currentQuantumCycle++;
         {
-            // Check if any core is busy and increment active ticks if true
+            bool anyCoreBusy = false;
             for (const auto& core : cores) {
                 if (core && core->getIsBusy()) {
-                    cpuCycle.incrementActiveCycle();
-                    break; // Increment only once per cycle if any core is busy
+                    anyCoreBusy = true;
+                    break; // Exit loop early if a busy core is found
                 }
+            }
+            if (anyCoreBusy) {
+                cpuCycle.incrementActiveCycle();
             }
         }
 
@@ -226,12 +229,15 @@ void Scheduler::listenForCycleRR() {
     while (schedulerStatus) {
 
         {
-            // Check if any core is busy and increment active ticks if true
+            bool anyCoreBusy = false;
             for (const auto& core : cores) {
                 if (core && core->getIsBusy()) {
-                    cpuCycle.incrementActiveCycle();
-                    break; // Increment only once per cycle if any core is busy
+                    anyCoreBusy = true;
+                    break; // Exit loop early if a busy core is found
                 }
+            }
+            if (anyCoreBusy) {
+                cpuCycle.incrementActiveCycle();
             }
         }
 
