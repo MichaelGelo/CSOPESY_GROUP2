@@ -18,9 +18,6 @@ public:
         memoryLocation = location;
     }
 
-
-
-
 private:
     void* memoryLocation;
 };

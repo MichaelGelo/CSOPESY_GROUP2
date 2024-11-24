@@ -377,3 +377,4 @@ Process8.txt
 /config.txt
 main.exe
 Memory_Stamps/memory_stamp_*.txt
+backingStore/process_*.txt
