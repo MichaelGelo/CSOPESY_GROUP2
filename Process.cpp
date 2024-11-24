@@ -134,6 +134,9 @@ void Process::displayProcessInfo(const std::string& message) const {
         if (message == "process-smi") {
             std::cout  << "  Memory Usage: " << memoryRequirement << std::endl;
         }
+        else {
+            std::cout << std::endl;
+        }
     }
     else {
         time_t now = time(0);
@@ -150,6 +153,9 @@ void Process::displayProcessInfo(const std::string& message) const {
             << "  " << std::right << std::setw(3) << curLines << "/" << std::left << std::setw(3) << maxLines;
         if (message == "process-smi") {
             std::cout << "  Memory Usage: " << memoryRequirement << std::endl;
+        }
+        else {
+            std::cout << std::endl;
         }
     }
 }

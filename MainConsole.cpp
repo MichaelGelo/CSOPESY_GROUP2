@@ -423,10 +423,10 @@ void MainConsole::displayProcessStatus() const {
     std::cout << GREEN << "\nCPU Utilization: " << std::fixed << std::setprecision(2)<< cpu_utilization << "%" << std::endl;
     std::cout << "Core Used: " << static_cast<int>(core_used) << std::endl;
     std::cout << "Core Available: " << static_cast<int>(core_available) << "\n" << RESET << std::endl;
-    std::cout << "Running Processes:\n";
+    
 
     std::cout << "-----------------------------------------------------------------\n";
-
+    std::cout << "Running Processes:\n";
     // Display running processes (READY, RUNNING, WAITING states)
     for (const auto& process : processes) {
         Process::ProcessState state = process->getState();
@@ -535,7 +535,7 @@ void MainConsole::processSMI() const {
     float mem_utilization = (memUsed / maxOverallMem) * 100;
 
     std::cout << "------------------------------------------------------------------------------------\n";
-    std::cout << "PROCESS-SMI\n";
+    std::cout << ORANGE << "PROCESS-SMI\n" << RESET;
     std::cout << GREEN << "\nCPU Utilization: " << std::fixed << std::setprecision(2) << cpu_utilization << "%" << std::endl;
     std::cout << "Memory Usage: " << memUsed << " MiB / " << maxOverallMem << " MiB " <<  std::endl;
     std::cout << "Memory Utilization: " << std::fixed << std::setprecision(2) << mem_utilization << "%" << "\n" << RESET << std::endl;
@@ -572,8 +572,8 @@ void MainConsole::vmstat() const {
     int totalCpuTicks = cpuCycle.getCurrentCycle();
     int activeCpuTicks = cpuCycle.getActiveCycleCount();
     int idleCpuTicks = totalCpuTicks - activeCpuTicks;
-    std::cout << "------------------------------------------------------------------------------------\n";
-    std::cout << "VMSTAT\n";
+    std::cout << "--------------------------------\n";
+    std::cout << ORANGE << "VMSTAT\n" << RESET;
     std::cout << GREEN << "\nTotal Memory: " << maxOverallMem << std::endl;
     std::cout << "Used Memory: " << memUsed << std::endl;
     std::cout << "Free Memory: " << maxOverallMem  - memUsed << std::endl;
@@ -582,6 +582,6 @@ void MainConsole::vmstat() const {
     std::cout << "Total CPU Ticks: " << totalCpuTicks << std::endl;
     std::cout << "Num Paged In: " << std::endl;
     std::cout << "Num Paged Out: " << RESET << std::endl;
-    std::cout << "------------------------------------------------------------------------------------\n";
+    std::cout << "--------------------------------\n";
 }
 
