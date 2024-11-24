@@ -276,6 +276,13 @@ void MainConsole::process() {
         display();
         return;
     }
+    else if (command == "process-smi") {
+        captureAndStoreOutput([this]() {
+            processSMI();
+            });
+        display();
+        return;
+    }
     // else if (command == "history") {
     //     showHistory();
     // }
@@ -420,7 +427,7 @@ void MainConsole::displayProcessStatus() const {
     for (const auto& process : processes) {
         Process::ProcessState state = process->getState();
         if (state == Process::RUNNING) {
-            process->displayProcessInfo();
+            process->displayProcessInfo("screen -ls");
             hasRunningProcess = true;
         }
     }
@@ -434,7 +441,7 @@ void MainConsole::displayProcessStatus() const {
     // Display finished processes (FINISHED state)
     for (const auto& process : processes) {
         if (process->getState() == Process::FINISHED || process->hasFinished()) {
-            process->displayProcessInfo();
+            process->displayProcessInfo("screen -ls");
             hasFinishedProcess = true;
         }
     }
@@ -494,4 +501,39 @@ void MainConsole::saveProcessReport() const {
     logFile << "=================================================================\n";
     logFile << screenListHist.back();  // Write the last screen -ls output
     logFile.close();
+}
+
+void MainConsole::processSMI() const {
+    bool hasRunningProcess = false;
+    bool hasFinishedProcess = false;
+
+    int unfinishedProcesses = 0;
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::RUNNING) {
+            unfinishedProcesses++;
+        }
+    }
+    float core_used = unfinishedProcesses < config.numCpu ? unfinishedProcesses : config.numCpu;
+    float cpu_utilization = (core_used / (float)config.numCpu) * 100;
+    float core_available = config.numCpu - core_used;
+    std::cout << "------------------------------------------------------------------------------------\n";
+    std::cout << "PROCESS-SMI\n";
+    std::cout << GREEN << "\nCPU Utilization: " << std::fixed << std::setprecision(2) << cpu_utilization << "%" << std::endl;
+    std::cout << "Memory Usage: " << static_cast<int>(core_used) << std::endl;
+    std::cout << "Memory Utilization: " << static_cast<int>(core_available) << "\n" << RESET << std::endl;
+    std::cout << "Running Processes:\n";
+
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::RUNNING) {
+            process->displayProcessInfo("process-smi");
+            hasRunningProcess = true;
+        }
+    }
+
+    if (!hasRunningProcess) {
+        std::cout << "There are no active processes.\n";
+    }
+    std::cout << "------------------------------------------------------------------------------------\n";
 }

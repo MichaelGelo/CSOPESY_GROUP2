@@ -121,17 +121,19 @@ void Process::logPrintCommand(const std::string& message) {
     logFile.close();
 }
 
-void Process::displayProcessInfo() const {
+void Process::displayProcessInfo(const std::string& message) const {
     std::ostringstream timeStream;
     if (isFinished) {
         timeStream << finishedTime;
 
         std::cout << std::left << std::setw(10) << screenName  // Set width for name
-                  << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
-                  << "  Finished "
-                  << "  " << curLines << "/" << maxLines
-                  << "  Memory Requirement: " << memoryRequirement; // Display memory requirement -- FOR DEBUGGING ONLY
-        std::cout << std::endl;
+            << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
+            << "  Finished "
+            << "  " << curLines << "/" << maxLines;
+                  
+        if (message == "process-smi") {
+            std::cout  << "  Memory Usage: " << memoryRequirement << std::endl;
+        }
     }
     else {
         time_t now = time(0);
@@ -143,11 +145,12 @@ void Process::displayProcessInfo() const {
         timeStream << timeBuffer;
 
         std::cout << std::left << std::setw(10) << screenName  // Set width for name
-                  << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
-                  << "  Core: " << std::setw(3) << core        // Set width for core
-                  << "  " << std::right << std::setw(3) << curLines << "/" << std::left << std::setw(3) << maxLines
-                  << "  Memory Requirement: " << memoryRequirement; // Display memory requirement -- FOR DEBUGGING ONLY
-        std::cout << std::endl;
+            << "  " << std::setw(28) << timeStream.str()  // Set width for timestamp
+            << "  Core: " << std::setw(3) << core        // Set width for core
+            << "  " << std::right << std::setw(3) << curLines << "/" << std::left << std::setw(3) << maxLines;
+        if (message == "process-smi") {
+            std::cout << "  Memory Usage: " << memoryRequirement << std::endl;
+        }
     }
 }
 

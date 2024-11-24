@@ -22,6 +22,7 @@ private:
     bool menuShown;
     void clear();
     void saveProcessReport() const;
+    void processSMI() const;
     std::map<std::string, AttachedProcess*> processQueue;
 
     std::vector<std::thread> cpuThreads;

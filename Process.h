@@ -50,7 +50,7 @@ public:
     void executeCommand();
     void getNextCommand(std::function<void()> command);
     void logPrintCommand(const std::string& message);
-    void displayProcessInfo() const;
+    void displayProcessInfo(const std::string& message) const;
 
     ProcessState getState() const;
     void switchState(ProcessState newState);
