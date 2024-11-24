@@ -21,6 +21,7 @@ private:
     Scheduler* scheduler;  
     std::shared_ptr<FlatMemoryAllocator> memoryAllocator;  
 
+
 public:
     CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler, std::shared_ptr<FlatMemoryAllocator> allocator)
         : coreID(id), quantumCycles(quantumCycles), delayPerExec(delayPerExec), quantumUsed(0),

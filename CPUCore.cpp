@@ -27,27 +27,32 @@ void CPUCore::checkAndRunProcess() {
 
 void CPUCore::removeProcessIfDone() {
     static int currentQuantumCycle = 1;
+
     if (currentProcess) {
-        bool processNeedsDeallocation = currentProcess->hasFinished() || 
+        bool processNeedsEviction = currentProcess->hasFinished() ||
             (scheduler->isRoundRobin() && isQuantumExpired());
 
-        if (processNeedsDeallocation) {
+        if (processNeedsEviction) {
             if (!currentProcess->hasFinished() && scheduler->isRoundRobin()) {
                 currentProcess->switchState(Process::READY);
                 scheduler->addToRQ(currentProcess);
                 scheduler->generateMemoryReport(currentQuantumCycle);
                 currentQuantumCycle++;
-            } else {
+            }
+            else {
                 currentProcess->switchState(Process::FINISHED);
             }
 
-            if (currentProcess->hasFinished())
-            memoryAllocator->deallocate(currentProcess);
-
-            clearProcess();
+            if (currentProcess->hasFinished() || memoryAllocator->getFreeMemory() == 0) {
+                memoryAllocator->evictOldestProcess();
+                scheduler->generateMemoryReport(currentQuantumCycle);
+                clearProcess();
+            }
         }
     }
 }
+
+
 
 void CPUCore::clearProcess() {
     currentProcess.reset();
