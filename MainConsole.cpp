@@ -571,12 +571,13 @@ void MainConsole::vmstat() const {
 
     int totalCpuTicks = cpuCycle.getCurrentCycle();
     int activeCpuTicks = cpuCycle.getActiveCycleCount();
+    int idleCpuTicks = totalCpuTicks - activeCpuTicks;
     std::cout << "------------------------------------------------------------------------------------\n";
     std::cout << "VMSTAT\n";
     std::cout << GREEN << "\nTotal Memory: " << maxOverallMem << std::endl;
     std::cout << "Used Memory: " << memUsed << std::endl;
     std::cout << "Free Memory: " << maxOverallMem  - memUsed << std::endl;
-    std::cout << "Idle CPU Ticks: " << std::endl;
+    std::cout << "Idle CPU Ticks: " << idleCpuTicks << std::endl;
     std::cout << "Active CPU Ticks: " << activeCpuTicks << std::endl;
     std::cout << "Total CPU Ticks: " << totalCpuTicks << std::endl;
     std::cout << "Num Paged In: " << std::endl;
