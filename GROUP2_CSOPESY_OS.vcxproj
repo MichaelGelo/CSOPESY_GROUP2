@@ -151,6 +151,7 @@
     <ClInclude Include="CPUCore.h" />
     <ClInclude Include="Design.h" />
     <ClInclude Include="FlatMemoryAllocator.h" />
+    <ClInclude Include="Frame.h" />
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IETThread.h" />
     <ClInclude Include="IMemoryAllocator.h" />

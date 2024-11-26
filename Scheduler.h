@@ -5,6 +5,7 @@
 #include "AttachedProcess.h"
 #include "CPUCycle.h"
 #include "CPUCore.h"
+#include "Frame.h"
 #include <string>
 #include <queue>
 #include <vector>
@@ -32,6 +33,8 @@ private:
     int minMemPerProc;
     int maxMemPerProc;
 
+    int numFrames;
+
     std::atomic<bool> schedulerStatus = false;
 
     std::vector<std::unique_ptr<CPUCore>> cores;  // Use unique_ptr to manage CPUCore objects
@@ -42,6 +45,8 @@ private:
     std::mutex rqMutex;                           // Mutex for ready queue
     std::condition_variable rqCondition;          // Condition variable for ready queue
     std::shared_ptr<FlatMemoryAllocator> memoryAllocator;
+
+    std::queue<Frame> frameQueue;
 
     // Private helper methods
     void initializeCores();                       // Initializes CPU cores and threads
@@ -65,6 +70,17 @@ public:
         batchProcessFreq(batchProcessFreq), minInstructions(minIns), maxInstructions(maxIns),
         delayPerExec(delayExec), maxOverallMem(maxOverallMem), memPerFrame(memPerFrame),
         minMemPerProc(minMemPerProc), maxMemPerProc(maxMemPerProc) {
+
+        if (memPerFrame > 0) {
+            numFrames = maxOverallMem / memPerFrame;
+        }
+        else {
+            numFrames = 0; 
+        }
+
+        for (int i = 0; i < numFrames; ++i) {
+            frameQueue.emplace(i, memPerFrame);
+        }
 
         memoryAllocator = std::make_shared<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc);
         memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.

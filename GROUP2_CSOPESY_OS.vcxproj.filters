@@ -110,6 +110,9 @@
     <ClInclude Include="AttachedProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Frame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GROUP2_CSOPESY_OS.rc">
