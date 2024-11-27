@@ -247,6 +247,7 @@ void Process::calculateMandP() {
 
     std::uniform_int_distribution<> dis(minPow, maxPow);
     M = 1 << dis(gen); 
+
     if (memPerFrame > 0) {
         P = (memoryRequirement + memPerFrame - 1) / memPerFrame;
     }

@@ -87,6 +87,8 @@ public:
     std::vector<std::shared_ptr<AttachedProcess>> processes;
     int nextPid = 1;
 
+    bool isPaging;
+
     void displayProcessStatus() const;
     const Configuration& getConfiguration() const { return config; }
 

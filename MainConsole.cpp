@@ -181,6 +181,9 @@ void MainConsole::process() {
                 // schedulerInstance->displayConfiguration(); // COMMENTED THIS ONE OUT LANG
 
                 isInitialized = true;
+
+                // Determine if its FlatMemory or Paging
+                isPaging = (this->config.maxOverallMem != this->config.memPerFrame);
             }
             });
 
