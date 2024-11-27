@@ -129,7 +129,7 @@ void MainConsole::process() {
                 this->config.maxOverallMem = std::stoi(configFile["max-overall-mem"]);
                 this->config.memPerFrame = std::stoi(configFile["mem-per-frame"]);
                 this->config.minMemPerProc = std::stoi(configFile["min-mem-per-proc"]);
-                this->config.maxMemPerProc = std::stoi(configFile["max-mem-per-proc"]);z
+                this->config.maxMemPerProc = std::stoi(configFile["max-mem-per-proc"]);
 
                 // Initialize the CPU cycle counter
                 cpuCycle.startClock();

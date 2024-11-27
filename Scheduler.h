@@ -35,6 +35,9 @@ private:
 
     int numFrames;
 
+    int P;
+    int M;
+
     std::atomic<bool> schedulerStatus = false;
 
     std::vector<std::unique_ptr<CPUCore>> cores;  // Use unique_ptr to manage CPUCore objects
@@ -61,6 +64,7 @@ private:
     int calculateProcessesInMemory();
     int calculateExternalFragmentation();
     std::string getMemoryPrintout();
+    
 public:
     // Constructor
     Scheduler(CPUCycle& cpuCycle, int numCpu, const std::string& scheduler, int quantumCycles,
@@ -90,10 +94,14 @@ public:
 
         if (schedulerAlgorithm == "fcfs") {
             std::cout << "Using First-Come, First-Served (FCFS) scheduling algorithm." << std::endl;
+            //std::cout << "Number of Frames: " << numFrames << std::endl;
+
             fcfs();
         }
         else if (schedulerAlgorithm == "rr") {
             std::cout << "Using Round Robin (RR) scheduling algorithm." << std::endl;
+            //std::cout << "Number of Frames: " << numFrames << std::endl;
+
             rr();
         }
         else {
@@ -119,4 +127,5 @@ public:
 
     void generateMemoryReport(int currentQuantumCycle);
 
+    void calculateMAndP();
 };
