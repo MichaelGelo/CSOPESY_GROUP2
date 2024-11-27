@@ -239,9 +239,8 @@ void Process::deallocateResources() {
 void Process::calculateMandP() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(minMemPerProc, maxMemPerProc);
-    M = dis(gen);
-
+    std::uniform_int_distribution<> dis(1, 32); // Generate exponent between 1 and 32
+    M = 1 << dis(gen); // Left shift by random exponent gives power of 2
     if (memPerFrame > 0) {
         P = (M + memPerFrame - 1) / memPerFrame;
     }
