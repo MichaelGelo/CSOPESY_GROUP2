@@ -301,7 +301,7 @@ void Scheduler::generateMemoryReport(int currentQuantumCycle) {
             }
         }
         catch (const std::exception& e) {
-            std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
+            //std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
         }
         firstRun = false;
     }

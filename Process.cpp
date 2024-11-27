@@ -1,4 +1,5 @@
 #include "Process.h"
+#include "Page.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -8,6 +9,7 @@
 #include <fstream>
 #include <random>
 #include <stdexcept>
+#include <vector>
 
 
 Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc)
@@ -246,9 +248,16 @@ void Process::calculateMandP() {
     std::uniform_int_distribution<> dis(minPow, maxPow);
     M = 1 << dis(gen); 
     if (memPerFrame > 0) {
-        P = (M + memPerFrame - 1) / memPerFrame;
+        P = (memoryRequirement + memPerFrame - 1) / memPerFrame;
     }
     else {
         P = 0;
+    }
+
+    //numPages = (memoryRequirement + P - 1) / P;
+
+    for (int i = 0; i < getP() ; i++) {
+        std::string pageName = std::to_string(getPid()) + "_" + std::to_string(i + 1);
+        pages.push_back(std::make_shared<Page>(pageName, getPid(), getMemPerFrame()));
     }
 }

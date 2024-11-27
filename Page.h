@@ -1,42 +1,18 @@
 #pragma once
 #ifndef PAGE_H
 #define PAGE_H
-
-#include "Process.h"
-#include <iostream>
-
 class Page {
 private:
-    int pid;                 
-    int memoryPerPage;       
+	std::string name;
+	int pid;
+	int memPerPage;
 
 public:
-    Page(int pid, int memoryRequirement, int numPages)
-        : pid(pid),
-        memoryPerPage(numPages > 0 ? memoryRequirement / numPages : 0) {
-    }
+	Page(std::string name, int pid, int memPerPage) : name(name), pid(pid), memPerPage(memPerPage) {}
 
-    int getPid() const {
-        return pid;
-    }
-
-    int getMemoryPerPage() const {
-        return memoryPerPage;
-    }
-
-    void setPid(int newPid) {
-        pid = newPid;
-    }
-
-    void setMemoryPerPage(int memory) {
-        memoryPerPage = memory;
-    }
-
-    void displayPageInfo() const {
-        std::cout << "Page Info - PID: " << pid
-            << ", Memory Per Page: " << memoryPerPage << " bytes"
-            << std::endl;
-    }
+	int getName() const { return pid; }
+	int getPid() const { return pid; }
+	int getMemPerPage() const { return memPerPage; }
 };
 
 #endif

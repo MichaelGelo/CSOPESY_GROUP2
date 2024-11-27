@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include "ICommand.h"
+#include "Page.h"
 
 class Process {
 private:
@@ -30,6 +31,10 @@ private:
 
     int P = 0;
     int M = 0;
+    //int numPages;
+
+    std::vector<std::shared_ptr<Page>> pages;
+
 
 public:
     enum ProcessState {
@@ -88,6 +93,10 @@ public:
     int getP() const {
         return P;
     }
+
+    //int getNumPages() const { return numPages; }
+    int getMemPerFrame() const { return memPerFrame; }
+    const std::vector<std::shared_ptr<Page>>& getPages() const { return pages; }
 };
 
 #endif

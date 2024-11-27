@@ -6,6 +6,8 @@
 #include "ConsoleManager.h"
 #include "Design.h"
 #include "AttachedProcess.h"
+#include "Page.h"
+#include "Process.h"
 
 ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines,
     int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc,
@@ -37,17 +39,34 @@ void ScreenConsole::display() {
 
     int M = processInstance->getM();
     int P = processInstance->getP();
+    int memoryRequirement = processInstance->getMemoryRequirement();
 
     std::cout << "Process: " << processName << std::endl;
     std::cout << "ID: " << pid << std::endl;
     std::cout << "\nCurrent Instruction Line: " << processInstance->getCurLines() << std::endl;
     std::cout << "Lines of Code: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
+
+    std::cout << "  Memory Requirement: " << memoryRequirement << std::endl;
     std::cout << "  Memory Per Frame: " << memPerFrame << std::endl;
     std::cout << "  Minimum Memory Per Process: " << minMemPerProc << std::endl;
     std::cout << "  Maximum Memory Per Process: " << maxMemPerProc << std::endl;
-    std::cout << "Allocated Memory (M): " << M << std::endl;
-    std::cout << "Calculated Frames (P): " << P << std::endl;
+    std::cout << "(M): " << memoryRequirement << std::endl;
+    std::cout << "(P): " << P << std::endl;
+
+    const auto& pages = processInstance->getPages();
+    if (!pages.empty()) {
+        std::cout << "\nPages:" << std::endl;
+        for (const auto& page : pages) {
+            //std::cout << "  - Page Name: " << page->getName()
+                //<< ", Memory Usage: " << page->getMemPerPage() << " KB" << std::endl;
+            std::cout << "  - Page Name: " << page->getName() << std::endl;
+        }
+    }
+    else {
+        std::cout << "\nNo pages allocated yet." << std::endl;
+    }
+
     std::cout << "\nType 'exit' to return to the main menu.\n" << std::endl;
 
     // Display last command
