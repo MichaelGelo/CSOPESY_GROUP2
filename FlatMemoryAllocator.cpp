@@ -8,9 +8,14 @@
 #include <chrono>
 #include <iomanip>
 
-FlatMemoryAllocator::FlatMemoryAllocator(size_t maximumSize, size_t memoryPerFrame, size_t minMemoryPerProc)
-    : maximumSize(maximumSize), allocatedSize(0), memoryPerFrame(memoryPerFrame), minMemoryPerProc(minMemoryPerProc),
-    allocationMap(maximumSize, false), backingStorePath("./backingStore") {
+FlatMemoryAllocator::FlatMemoryAllocator(size_t maximumSize, size_t memoryPerFrame, size_t minMemoryPerProc, size_t maxMemoryPerProc)
+    : maximumSize(maximumSize),
+    allocatedSize(0),
+    memoryPerFrame(memoryPerFrame),
+    minMemoryPerProc(minMemoryPerProc),
+    maxMemoryPerProc(maxMemoryPerProc),
+    allocationMap(maximumSize, false),
+    backingStorePath("./backingStore") {
     memory.resize(maximumSize);
     initializeMemory();
 
@@ -29,6 +34,7 @@ FlatMemoryAllocator::FlatMemoryAllocator(size_t maximumSize, size_t memoryPerFra
         throw;
     }
 }
+
 
 
 void FlatMemoryAllocator::printConfiguration() const {
@@ -99,11 +105,11 @@ void FlatMemoryAllocator::evictOldestProcess() {
 void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     size_t size = process->getMemoryRequirement();
 
-    if (size < minMemoryPerProc || size == 0) {
+    if (size < minMemoryPerProc || size > maxMemoryPerProc || size == 0) {
         throw std::bad_alloc();
     }
 
-    // Evict processes if memory is full before allocating new process
+    // Evict processes if memory is full before allocating a new process
     while (allocatedSize + size > maximumSize) {
         std::cout << "Eviction triggered. Allocated Size: " << allocatedSize << ", Required Size: " << size << std::endl;
         evictOldestProcess();
@@ -125,6 +131,7 @@ void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     }
     throw std::bad_alloc();
 }
+
 
 void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
     size_t memoryAddress = reinterpret_cast<size_t>(process->getMemoryLocation());

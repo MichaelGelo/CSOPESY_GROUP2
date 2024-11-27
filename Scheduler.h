@@ -83,7 +83,7 @@ public:
             frameQueue.emplace(i, memPerFrame);
         }
 
-        memoryAllocator = std::make_shared<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc);
+        memoryAllocator = std::make_shared<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.
 
         initializeCores();

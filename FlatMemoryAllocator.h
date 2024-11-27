@@ -17,7 +17,7 @@ struct MemoryPartition {
 
 class FlatMemoryAllocator : public IMemoryAllocator {
 public:
-    FlatMemoryAllocator(size_t maximumSize, size_t memoryPerFrame, size_t minMemoryPerProc);
+    FlatMemoryAllocator(size_t maximumSize, size_t memoryPerFrame, size_t minMemoryPerProc, size_t maxMemoryPerProc);
     ~FlatMemoryAllocator();
 
     void* allocate(std::shared_ptr<AttachedProcess> process) override;
@@ -40,6 +40,7 @@ private:
     size_t allocatedSize;
     size_t memoryPerFrame;
     size_t minMemoryPerProc;
+    size_t maxMemoryPerProc;
     std::vector<char> memory;
     std::vector<bool> allocationMap;
     std::unordered_map<size_t, size_t> allocatedMemoryMap;

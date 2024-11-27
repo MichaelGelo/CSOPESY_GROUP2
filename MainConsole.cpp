@@ -75,11 +75,12 @@ void MainConsole::createProcess(std::string processName) {
     std::uniform_int_distribution<> dis(this->config.minIns, this->config.maxIns);
     int randomLines = dis(gen);
 
-    int memoryRequirement = this->config.minMemPerProc;
-
     int memPerFrame = this->config.memPerFrame; 
     int minMemPerProc = this->config.minMemPerProc;    
     int maxMemPerProc = this->config.maxMemPerProc;   
+
+    std::uniform_int_distribution<> memDis(this->config.minMemPerProc, this->config.maxMemPerProc);
+    int memoryRequirement = memDis(gen);
 
     auto newScreen = std::make_shared<ScreenConsole>(
         processName,
@@ -96,7 +97,6 @@ void MainConsole::createProcess(std::string processName) {
 
     schedulerInstance->addToRQ(newScreen->getProcess());
 }
-
 
 
 
