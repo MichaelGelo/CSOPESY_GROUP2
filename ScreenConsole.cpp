@@ -7,10 +7,13 @@
 #include "Design.h"
 #include "AttachedProcess.h"
 
-ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<AttachedProcess>>& processes)
-    : AConsole(processName), processName(processName), pid(pid), core(core), totalLines(totalLines), processes(processes)
+ScreenConsole::ScreenConsole(const std::string& processName, int pid, int core, int totalLines,
+    int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc,
+    std::vector<std::shared_ptr<AttachedProcess>>& processes)
+    : AConsole(processName), processName(processName), pid(pid), core(core), totalLines(totalLines),
+    memPerFrame(memPerFrame), minMemPerProc(minMemPerProc), maxMemPerProc(maxMemPerProc), processes(processes)
 {
-    processInstance = std::make_shared<AttachedProcess>(pid, processName, core, totalLines, memoryRequirement);
+    processInstance = std::make_shared<AttachedProcess>(pid, processName, core, totalLines, memoryRequirement, memPerFrame, minMemPerProc, maxMemPerProc);
     processInstance->generateCommands();
 
     this->processes.push_back(processInstance);
@@ -31,11 +34,20 @@ void ScreenConsole::onEnabled() {
 
 void ScreenConsole::display() {
     system("cls");
+
+    int M = processInstance->getM();
+    int P = processInstance->getP();
+
     std::cout << "Process: " << processName << std::endl;
     std::cout << "ID: " << pid << std::endl;
     std::cout << "\nCurrent Instruction Line: " << processInstance->getCurLines() << std::endl;
     std::cout << "Lines of Code: " << totalLines << std::endl;
     std::cout << "Timestamp: " << timestamp << std::endl;
+    std::cout << "  Memory Per Frame: " << memPerFrame << std::endl;
+    std::cout << "  Minimum Memory Per Process: " << minMemPerProc << std::endl;
+    std::cout << "  Maximum Memory Per Process: " << maxMemPerProc << std::endl;
+    std::cout << "Allocated Memory (M): " << M << std::endl;
+    std::cout << "Calculated Frames (P): " << P << std::endl;
     std::cout << "\nType 'exit' to return to the main menu.\n" << std::endl;
 
     // Display last command

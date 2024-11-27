@@ -35,9 +35,6 @@ private:
 
     int numFrames;
 
-    int P;
-    int M;
-
     std::atomic<bool> schedulerStatus = false;
 
     std::vector<std::unique_ptr<CPUCore>> cores;  // Use unique_ptr to manage CPUCore objects
@@ -127,5 +124,4 @@ public:
 
     void generateMemoryReport(int currentQuantumCycle);
 
-    void calculateMAndP();
 };

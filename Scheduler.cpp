@@ -401,17 +401,3 @@ std::string Scheduler::getMemoryPrintout() {
     output << "----start---- = 0\n";
     return output.str();
 }
-
-void Scheduler::calculateMAndP() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(minMemPerProc, maxMemPerProc);
-    M = dis(gen);
-
-    if (memPerFrame > 0) {
-        P = (M + memPerFrame - 1) / memPerFrame; 
-    }
-    else {
-        P = 0;
-    }
-}

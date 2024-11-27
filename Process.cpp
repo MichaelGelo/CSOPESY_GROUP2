@@ -6,19 +6,45 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
+#include <random>
+#include <stdexcept>
 
-Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement)
-    : pid(pid), screenName(std::move(screenName)), core(core),
-      maxLines(maxLines), curLines(0), isFinished(false),
-      state(READY), memoryRequirement(memoryRequirement), isAllocated(false){
+
+Process::Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc)
+    : pid(pid),
+    screenName(std::move(screenName)),
+    core(core),
+    maxLines(maxLines),
+    curLines(0),
+    isFinished(false),
+    state(READY),
+    memoryRequirement(memoryRequirement),
+    memPerFrame(memPerFrame),
+    minMemPerProc(minMemPerProc),
+    maxMemPerProc(maxMemPerProc),
+    isAllocated(false),
+    M(0), // Initialize M to a default value
+    P(0)  // Initialize P to a default value
+{
+    calculateMandP(); 
 }
 
 Process::Process(Process&& other) noexcept
-    : pid(other.pid), screenName(std::move(other.screenName)),
-    core(other.core), maxLines(other.maxLines),
-    curLines(other.curLines), isFinished(other.isFinished),
-    state(other.state), memoryRequirement(other.memoryRequirement),
-    memoryPointer(other.memoryPointer), isAllocated(other.isAllocated)
+    : pid(other.pid),
+    screenName(std::move(other.screenName)),
+    core(other.core),
+    maxLines(other.maxLines),
+    curLines(other.curLines),
+    isFinished(other.isFinished),
+    state(other.state),
+    memoryRequirement(other.memoryRequirement),
+    memPerFrame(other.memPerFrame),
+    minMemPerProc(other.minMemPerProc),
+    maxMemPerProc(other.maxMemPerProc),
+    memoryPointer(other.memoryPointer),
+    isAllocated(other.isAllocated),
+    M(other.M),
+    P(other.P)
 {
     other.pid = -1;
     other.isFinished = false;
@@ -36,8 +62,13 @@ Process& Process::operator=(Process&& other) noexcept {
         isFinished = other.isFinished;
         state = other.state;
         memoryRequirement = other.memoryRequirement;
-        memoryPointer = other.memoryPointer; 
+        memPerFrame = other.memPerFrame;
+        minMemPerProc = other.minMemPerProc;
+        maxMemPerProc = other.maxMemPerProc;
+        memoryPointer = other.memoryPointer;
         isAllocated = other.isAllocated;
+        M = other.M;
+        P = other.P;
 
         other.pid = -1;
         other.isFinished = false;
@@ -203,4 +234,18 @@ void Process::allocateResources() {
 
 void Process::deallocateResources() {
     isAllocated = false;
+}
+
+void Process::calculateMandP() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(minMemPerProc, maxMemPerProc);
+    M = dis(gen);
+
+    if (memPerFrame > 0) {
+        P = (M + memPerFrame - 1) / memPerFrame;
+    }
+    else {
+        P = 0;
+    }
 }

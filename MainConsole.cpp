@@ -77,7 +77,21 @@ void MainConsole::createProcess(std::string processName) {
 
     int memoryRequirement = this->config.minMemPerProc;
 
-    auto newScreen = std::make_shared<ScreenConsole>(processName, nextPid++, 1, randomLines, memoryRequirement, processes);
+    int memPerFrame = this->config.memPerFrame; 
+    int minMemPerProc = this->config.minMemPerProc;    
+    int maxMemPerProc = this->config.maxMemPerProc;   
+
+    auto newScreen = std::make_shared<ScreenConsole>(
+        processName,
+        nextPid++,
+        1,
+        randomLines,
+        memoryRequirement,
+        memPerFrame,
+        minMemPerProc,
+        maxMemPerProc,
+        processes
+    );
     ConsoleManager::getInstance()->registerScreen(newScreen);
 
     schedulerInstance->addToRQ(newScreen->getProcess());

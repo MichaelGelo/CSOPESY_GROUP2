@@ -7,7 +7,9 @@
 
 class ScreenConsole : public AConsole {
 public:
-    ScreenConsole(const std::string& processName, int pid, int core, int totalLines, int memoryRequirement, std::vector<std::shared_ptr<AttachedProcess>>& processes);
+    ScreenConsole(const std::string& processName, int pid, int core, int totalLines,
+        int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc,
+        std::vector<std::shared_ptr<AttachedProcess>>& processes);
 
     std::shared_ptr<AttachedProcess> getProcess() const;
 
@@ -23,6 +25,9 @@ private:
     int core;
     int totalLines;
     int currentLine = 0;
+    int memPerFrame;       
+    int minMemPerProc;     
+    int maxMemPerProc;
     std::shared_ptr<AttachedProcess> processInstance; 
     std::vector<std::shared_ptr<AttachedProcess>>& processes; 
 

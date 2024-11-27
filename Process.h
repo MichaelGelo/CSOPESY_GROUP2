@@ -21,8 +21,15 @@ private:
     std::string finishedTime;
     int memoryRequirement;
 
+    int memPerFrame; // Memory per frame
+    int minMemPerProc; // Minimum memory per process
+    int maxMemPerProc; // Maximum memory per process
+
     void* memoryPointer = nullptr;
     bool isAllocated;
+
+    int P = 0;
+    int M = 0;
 
 public:
     enum ProcessState {
@@ -38,7 +45,7 @@ private:
     CommandList commandList;
 
 public:
-    Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement);
+    Process(int pid, std::string screenName, int core, int maxLines, int memoryRequirement, int memPerFrame, int minMemPerProc, int maxMemPerProc);
 
     Process(const Process&) = delete;
     Process& operator=(const Process&) = delete;
@@ -71,7 +78,16 @@ public:
     bool hasAllocated() const;
     void allocateResources();
     void deallocateResources();
+    void calculateMandP();
     virtual ~Process() = default;
+
+    int getM() const {
+        return M;
+    }
+
+    int getP() const {
+        return P;
+    }
 };
 
 #endif
