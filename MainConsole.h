@@ -11,10 +11,11 @@
 #include "AttachedProcess.h"
 #include "Scheduler.h"
 #include "CPUCycle.h"
-
+//#include "PagingMemoryAllocator.h"
 class MainConsole : public AConsole {
 
 private:
+    PagingMemoryAllocator* paging;
     void captureAndStoreOutput(std::function<void()> func);
     std::vector<std::string> commandHist;
 

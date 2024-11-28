@@ -1,19 +1,11 @@
 #ifndef FLATMALLOCATOR_H
 #define FLATMALLOCATOR_H
 
-#include "IMemoryAllocator.h" 
+#include "IMemoryAllocator.h"
 #include "AttachedProcess.h"
 #include <vector>
-#include <string>
-#include <iostream>
+#include <unordered_map>
 #include <filesystem>
-#include <unordered_map> 
-
-struct MemoryPartition {
-    uint32_t slotNumber;
-    bool isAllocatable;
-    std::shared_ptr<AttachedProcess> process;
-};
 
 class FlatMemoryAllocator : public IMemoryAllocator {
 public:
@@ -22,20 +14,20 @@ public:
 
     void* allocate(std::shared_ptr<AttachedProcess> process) override;
     void deallocate(std::shared_ptr<AttachedProcess> process) override;
-    void visualMemory() const;
-    void printConfiguration() const;
-    int getFreeMemory() const;
-    int getAllocatedSize() const;
-    std::vector<MemoryPartition> getMemoryPartitions() const;
-    int getMaximumSize() const;
-    int getMinimumAllocatableSize() const;
-    int getMemoryPerFrame() const;
-    bool isAllocated(size_t index) const;
-    MemoryPartition getPartitionAt(int index) const;
-    void evictOldestProcess();
+    void visualMemory() const override;
+    void printConfiguration() const override;
+    size_t getFreeMemory() const override;
+    size_t getAllocatedSize() const override;
+    std::vector<IMemoryAllocator::MemoryPartition> getMemoryPartitions() const override;
+    size_t getMaximumSize() const override;
+    size_t getMinimumAllocatableSize() const override;
+    size_t getMemoryPerFrame() const override;
+    bool isAllocated(size_t index) const override;
+    IMemoryAllocator::MemoryPartition getPartitionAt(size_t index) const override;
+    void evictOldestProcess() override;
 
 private:
-    std::vector<MemoryPartition> memoryPartitions; 
+    std::vector<IMemoryAllocator::MemoryPartition> memoryPartitions;
     size_t maximumSize;
     size_t allocatedSize;
     size_t memoryPerFrame;
@@ -52,4 +44,4 @@ private:
     void deallocateAt(size_t index);
 };
 
-#endif
+#endif // FLATMALLOCATOR_H

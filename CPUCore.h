@@ -19,10 +19,10 @@ private:
     int delayPerExec;
     std::atomic<bool> running;
     Scheduler* scheduler;  
-    std::shared_ptr<FlatMemoryAllocator> memoryAllocator;  
+    IMemoryAllocator* memoryAllocator;
 
 public:
-    CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler, std::shared_ptr<FlatMemoryAllocator> allocator)
+    CPUCore(int id, int quantumCycles, int delayPerExec, Scheduler* scheduler, IMemoryAllocator* allocator)
         : coreID(id), quantumCycles(quantumCycles), delayPerExec(delayPerExec), quantumUsed(0),
         isBusy(false), running(true), scheduler(scheduler), memoryAllocator(allocator) { }
 

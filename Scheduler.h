@@ -46,7 +46,7 @@ private:
     std::condition_variable cv;                   // Condition variable for scheduler
     std::mutex rqMutex;                           // Mutex for ready queue
     std::condition_variable rqCondition;          // Condition variable for ready queue
-    std::shared_ptr<FlatMemoryAllocator> memoryAllocator;
+    IMemoryAllocator* memoryAllocator;
 
     std::queue<std::shared_ptr<Frame>> frameQueue;
     std::mutex frameQueueMutex;
@@ -101,8 +101,8 @@ public:
                 << std::endl;
         }
 
-        memoryAllocator = std::make_shared<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
-        memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.
+        memoryAllocator = new FlatMemoryAllocator (maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+        //memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.
 
         initializeCores();
         removeQuotes(schedulerAlgorithm);
@@ -122,6 +122,16 @@ public:
         else {
             std::cout << "Unknown scheduling algorithm specified." << std::endl;
         }
+        /*if (maxOverallMem == memPerFrame) {
+    std::cout << "Using FlatMemoryAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
+
+    memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+}
+else {
+    std::cout << "Using PagingAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;*/
+
+        memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+        //}
     }
 
     ~Scheduler(); 

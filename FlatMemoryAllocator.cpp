@@ -183,34 +183,34 @@ void FlatMemoryAllocator::deallocateAt(size_t index) {
     allocatedSize -= size;
 }
 
-int FlatMemoryAllocator::getAllocatedSize() const {
-    return static_cast<int>(allocatedSize);
+size_t FlatMemoryAllocator::getAllocatedSize() const {
+    return allocatedSize;
 }
 
-int FlatMemoryAllocator::getFreeMemory() const {
+size_t FlatMemoryAllocator::getFreeMemory() const {
     return static_cast<int>(maximumSize - allocatedSize);
 }
 
-std::vector<MemoryPartition> FlatMemoryAllocator::getMemoryPartitions() const {
+std::vector<IMemoryAllocator::MemoryPartition> FlatMemoryAllocator::getMemoryPartitions() const {
     return memoryPartitions;
 }
 
-int FlatMemoryAllocator::getMaximumSize() const {
-    return static_cast<int>(maximumSize);
+size_t FlatMemoryAllocator::getMaximumSize() const {
+    return maximumSize;
 }
 
-int FlatMemoryAllocator::getMemoryPerFrame() const {
-    return static_cast<int>(memoryPerFrame);
+size_t FlatMemoryAllocator::getMemoryPerFrame() const {
+    return memoryPerFrame;
 }
 
-MemoryPartition FlatMemoryAllocator::getPartitionAt(int index) const {
+IMemoryAllocator::MemoryPartition FlatMemoryAllocator::getPartitionAt(size_t index) const {
     if (index >= 0 && index < static_cast<int>(memoryPartitions.size())) {
         return memoryPartitions[index];
     }
-    return MemoryPartition{};
+    return IMemoryAllocator::MemoryPartition{};
 }
 
-int FlatMemoryAllocator::getMinimumAllocatableSize() const {
+size_t FlatMemoryAllocator::getMinimumAllocatableSize() const {
     return static_cast<int>(minMemoryPerProc);
 }
 
