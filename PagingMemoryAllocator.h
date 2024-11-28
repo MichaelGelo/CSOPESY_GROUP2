@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <deque>
 #include "AttachedProcess.h" // Assume this is a class representing processes.
+class Scheduler;
 
 struct Frame {
     size_t frameNumber;
@@ -17,7 +18,7 @@ struct Frame {
 
 class PagingMemoryAllocator {
 public:
-    PagingMemoryAllocator(size_t totalMemory, size_t frameSize);
+    PagingMemoryAllocator(size_t totalMemory, size_t frameSize, Scheduler& scheduler);
     ~PagingMemoryAllocator();
 
     void* allocate(std::shared_ptr<AttachedProcess> process);
@@ -39,6 +40,8 @@ private:
     std::map<size_t, std::shared_ptr<AttachedProcess>> backingStore;
 
     std::filesystem::path backingStorePath;
+
+    Scheduler& scheduler;
 
     void initializeFrames();
     void evictOldestProcess();

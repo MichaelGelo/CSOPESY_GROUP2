@@ -7,9 +7,9 @@
 #include <chrono>
 #include <iomanip>
 
-PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSize)
-    : totalMemory(totalMemory), frameSize(frameSize),
-    totalFrames(totalMemory / frameSize), allocatedFrames(0),
+PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSize, Scheduler& scheduler)
+    : totalMemory(totalMemory), frameSize(frameSize), scheduler(scheduler),
+    totalFrames(totalMemory / frameSize), allocatedFrames(0), 
     backingStorePath("./backingStore") {
 
     // Initialize frame table

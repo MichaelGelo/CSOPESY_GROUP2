@@ -15,6 +15,8 @@
 #include <thread>
 #include <memory>
 //
+class PagingMemoryAllocator;
+
 class Scheduler {
 private:
     CPUCycle& cpuCycle;
@@ -46,7 +48,8 @@ private:
     std::condition_variable rqCondition;          // Condition variable for ready queue
     std::shared_ptr<FlatMemoryAllocator> memoryAllocator;
 
-    std::queue<Frame> frameQueue;
+    std::queue<std::shared_ptr<Frame>> frameQueue;
+    std::mutex frameQueueMutex;
 
     // Private helper methods
     void initializeCores();                       // Initializes CPU cores and threads
@@ -61,6 +64,8 @@ private:
     int calculateProcessesInMemory();
     int calculateExternalFragmentation();
     std::string getMemoryPrintout();
+
+    friend class PagingMemoryAllocator;
     
 public:
     // Constructor
@@ -80,7 +85,20 @@ public:
         }
 
         for (int i = 0; i < numFrames; ++i) {
-            frameQueue.emplace(i, memPerFrame);
+            frameQueue.emplace(std::make_shared<Frame>(i, memPerFrame, false));
+
+        }
+
+        std::lock_guard<std::mutex> lock(frameQueueMutex); // Ensure thread-safe access to the frameQueue
+        std::queue<std::shared_ptr<Frame>> tempQueue = frameQueue; // Make a copy to avoid modifying the original queue
+
+        std::cout << "Frames in queue:\n";
+        while (!tempQueue.empty()) {
+            auto frame = tempQueue.front();
+            tempQueue.pop();
+            std::cout << "Frame Number: " << frame->getFrameNum()
+                << ", Memory Per Frame: " << frame->getMemPerFrame()
+                << std::endl;
         }
 
         memoryAllocator = std::make_shared<FlatMemoryAllocator>(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
