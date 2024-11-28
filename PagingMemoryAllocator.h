@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <deque>
 #include "AttachedProcess.h" // Assume this is a class representing processes.
+#include <mutex>
 class Scheduler;
 
 struct Frame {
@@ -29,6 +30,9 @@ public:
     int getFreeFrames() const;
     std::vector<Frame> getFrameTable() const;
 
+    size_t getPageIn();  // Remove const
+    size_t getPageOut(); // Remove const
+
 private:
     size_t totalMemory;
     size_t frameSize;
@@ -45,6 +49,10 @@ private:
 
     void initializeFrames();
     void evictOldestProcess();
+
+    mutable std::mutex memoryMutex;  // Make mutex mutable
+    std::atomic<size_t> nPagedIn{ 0 }; // Use atomic for thread-safety
+    std::atomic<size_t> nPagedOut{ 0 }; // Use atomic for thread-safety
 };
 
 #endif

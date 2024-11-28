@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
+#include <mutex>
 
 PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSize, Scheduler& scheduler)
     : totalMemory(totalMemory), frameSize(frameSize), scheduler(scheduler),
@@ -61,28 +62,48 @@ void PagingMemoryAllocator::visualMemory() const {
     std::cout << std::endl;
 }
 
+size_t PagingMemoryAllocator::getPageIn() {
+    std::cerr << "Getting PageIn: " << nPagedIn << std::endl;
+    return nPagedIn;
+}
+
+size_t PagingMemoryAllocator::getPageOut() {
+    std::cerr << "Getting PageOut: " << nPagedOut << std::endl;
+    return nPagedOut;
+}
+
 void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
+    // Calculate number of frames needed
     size_t requiredFrames = (process->getMemoryRequirement() + frameSize - 1) / frameSize;
 
+    // Check if enough free frames are available
     if (requiredFrames > freeFrames.size()) {
-        throw std::bad_alloc();
+        std::cerr << "Allocation failed: Not enough free frames" << std::endl;
+        throw std::bad_alloc(); // Not enough free frames
     }
 
-    std::vector<size_t> allocatedFrameNumbers;
+    // Get the first available frame index
+    size_t frameIndex = freeFrames.back();
 
+    // Allocate frames for the process
     for (size_t i = 0; i < requiredFrames; ++i) {
-        size_t frameNumber = freeFrames.front();
-        freeFrames.pop_front();
+        // Remove frame from free list
+        freeFrames.pop_back();
 
-        frameTable[frameNumber].isAllocatable = false;
-        frameTable[frameNumber].process = process;
-
-        allocatedFrameNumbers.push_back(frameNumber);
+        // Update frame table
+        frameTable[frameIndex + i].isAllocatable = false;
+        frameTable[frameIndex + i].process = process;
     }
 
+    // Update allocation counters
     allocatedFrames += requiredFrames;
 
-    void* processMemory = reinterpret_cast<void*>(allocatedFrameNumbers.front() * frameSize);
+    // Increment page-in counter
+    nPagedIn += requiredFrames;
+    std::cerr << "Allocated " << requiredFrames << " frames. Total PagedIn: " << nPagedIn << std::endl;
+
+    // Calculate memory location and set for the process
+    void* processMemory = reinterpret_cast<void*>(frameIndex * frameSize);
     process->setMemoryLocation(processMemory);
 
     return processMemory;
@@ -90,17 +111,33 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
 
 void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
     void* memoryLocation = process->getMemoryLocation();
-    size_t startFrame = reinterpret_cast<size_t>(memoryLocation) / frameSize;
-
-    for (auto& frame : frameTable) {
-        if (frame.process == process) {
-            frame.isAllocatable = true;
-            frame.process.reset();
-            freeFrames.push_back(frame.frameNumber);
-        }
+    if (memoryLocation == nullptr) {
+        std::cerr << "Deallocate failed: No memory to deallocate" << std::endl;
+        return; // No memory to deallocate
     }
 
-    allocatedFrames -= 1; // Adjust the count based on the exact allocated frame count.
+    // Calculate frame index and number of frames
+    size_t frameIndex = reinterpret_cast<size_t>(memoryLocation) / frameSize;
+    size_t requiredFrames = (process->getMemoryRequirement() + frameSize - 1) / frameSize;
+
+    // Remove frames from frame map and mark as free
+    for (size_t i = 0; i < requiredFrames; ++i) {
+        // Clear process from frame
+        frameTable[frameIndex + i].isAllocatable = true;
+        frameTable[frameIndex + i].process.reset();
+
+        // Add frame back to free list
+        freeFrames.push_back(frameIndex + i);
+    }
+
+    // Update allocation counters
+    allocatedFrames -= requiredFrames;
+
+    // Increment page-out counter
+    nPagedOut += requiredFrames;
+    std::cerr << "Deallocated " << requiredFrames << " frames. Total PagedOut: " << nPagedOut << std::endl;
+
+    // Clear process memory location
     process->setMemoryLocation(nullptr);
 }
 
