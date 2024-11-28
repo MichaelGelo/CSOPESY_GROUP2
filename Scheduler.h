@@ -2,6 +2,7 @@
 #include "Process.h"
 #include "ConsoleManager.h"
 #include "FlatMemoryAllocator.h"
+#include "PagingMemoryAllocator.h"
 #include "AttachedProcess.h"
 #include "CPUCycle.h"
 #include "CPUCore.h"
@@ -122,16 +123,18 @@ public:
         else {
             std::cout << "Unknown scheduling algorithm specified." << std::endl;
         }
-        /*if (maxOverallMem == memPerFrame) {
-    std::cout << "Using FlatMemoryAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
+        if (maxOverallMem == memPerFrame) {
+            std::cout << "Using FlatMemoryAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
 
-    memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
-}
-else {
-    std::cout << "Using PagingAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;*/
+            memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+        }
+        else {
+            std::cout << "Using PagingAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
 
-        memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
-        //}
+            //memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+            memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+        }
+        
     }
 
     ~Scheduler(); 

@@ -10,7 +10,7 @@
 
 PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSize, Scheduler& scheduler)
     : totalMemory(totalMemory), frameSize(frameSize), scheduler(scheduler),
-    totalFrames(totalMemory / frameSize), allocatedFrames(0), 
+    totalFrames(totalMemory / frameSize), allocatedFrames(0),
     backingStorePath("./backingStore") {
 
     // Initialize frame table
@@ -40,7 +40,8 @@ PagingMemoryAllocator::~PagingMemoryAllocator() {
 
 void PagingMemoryAllocator::initializeFrames() {
     for (size_t i = 0; i < totalFrames; ++i) {
-        frameTable.push_back({ i, true, nullptr });
+        // Create Frame with frameNum, memPerFrame, and initially allocatable
+        frameTable.push_back(Frame(i, frameSize, true));
         freeFrames.push_back(i); // All frames start as free.
     }
 }
@@ -57,7 +58,7 @@ void PagingMemoryAllocator::printConfiguration() const {
 void PagingMemoryAllocator::visualMemory() const {
     std::cout << "Frame Allocation Map: ";
     for (const auto& frame : frameTable) {
-        std::cout << (frame.isAllocatable ? "0" : "1");
+        std::cout << (frame.isAllocatable() ? "0" : "1");
     }
     std::cout << std::endl;
 }
@@ -91,8 +92,15 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
         freeFrames.pop_back();
 
         // Update frame table
-        frameTable[frameIndex + i].isAllocatable = false;
-        frameTable[frameIndex + i].process = process;
+        frameTable[frameIndex + i].setIsAllocatable(false);
+
+        // Create a Page for this frame
+        auto page = std::make_shared<Page>(
+            "Page_" + std::to_string(i),
+            process->getPid(),
+            frameSize
+        );
+        frameTable[frameIndex + i].setCurrentPage(page);
     }
 
     // Update allocation counters
@@ -122,9 +130,9 @@ void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process)
 
     // Remove frames from frame map and mark as free
     for (size_t i = 0; i < requiredFrames; ++i) {
-        // Clear process from frame
-        frameTable[frameIndex + i].isAllocatable = true;
-        frameTable[frameIndex + i].process.reset();
+        // Clear page from frame
+        frameTable[frameIndex + i].setIsAllocatable(true);
+        frameTable[frameIndex + i].setCurrentPage(nullptr);
 
         // Add frame back to free list
         freeFrames.push_back(frameIndex + i);
@@ -143,15 +151,20 @@ void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process)
 
 void PagingMemoryAllocator::evictOldestProcess() {
     for (auto& frame : frameTable) {
-        if (!frame.isAllocatable && frame.process) {
-            std::shared_ptr<AttachedProcess> process = frame.process;
+        if (!frame.isAllocatable() && frame.getCurrentPage()) {
+            std::shared_ptr<Page> page = frame.getCurrentPage();
 
-            std::ofstream outFile(backingStorePath / ("process_" + std::to_string(process->getPid()) + ".txt"));
+            // Construct the output file path
+            std::filesystem::path filePath = backingStorePath / ("process_" + std::to_string(page->getPid()) + ".txt");
 
-            outFile << "Process ID: " << process->getPid() << "\n";
-            outFile << "Memory Requirement: " << process->getMemoryRequirement() << " bytes\n";
+            // Use std::ofstream constructor that takes a path
+            std::ofstream outFile(filePath);
 
-            deallocate(process);
+            outFile << "Process ID: " << page->getPid() << "\n";
+            outFile << "Page Name: " << page->getName() << "\n";
+            outFile << "Memory Per Page: " << page->getMemPerPage() << " bytes\n";
+
+            outFile.close();
             break;
         }
     }
