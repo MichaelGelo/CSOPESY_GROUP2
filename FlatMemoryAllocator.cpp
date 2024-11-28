@@ -58,17 +58,20 @@ void FlatMemoryAllocator::visualMemory() const {
 }
 
 void FlatMemoryAllocator::evictOldestProcess() {
-    for (auto& partition : memoryPartitions) {
+    if (memoryPartitions.size() == 1 && maximumSize == memoryPerFrame) {
+        auto& partition = memoryPartitions[0];
+
         if (!partition.isAllocatable && partition.process) {
             auto process = partition.process;
             if (!process) {
                 std::cerr << "Error: Process is null during eviction.\n";
-                continue;
+                return;
             }
 
             auto now = std::chrono::system_clock::now();
             auto time_t_now = std::chrono::system_clock::to_time_t(now);
             std::tm tm_now;
+
             if (localtime_s(&tm_now, &time_t_now) != 0) {
                 std::cerr << "Error: Failed to get local time for eviction timestamp.\n";
                 return;
@@ -77,16 +80,15 @@ void FlatMemoryAllocator::evictOldestProcess() {
             std::ostringstream timestampStream;
             timestampStream << std::put_time(&tm_now, "%Y-%m-%d %H:%M:%S");
 
+            // Write process details to backing store
             std::string fileName = "process_" + std::to_string(process->getPid()) + ".txt";
             std::filesystem::path filePath = backingStorePath / fileName;
 
-            std::ofstream outFile(filePath);
-
             try {
+                std::ofstream outFile(filePath);
                 outFile << "Process ID: " << process->getPid() << std::endl;
                 outFile << "Memory Requirement: " << process->getMemoryRequirement() << " bytes" << std::endl;
                 outFile << "Eviction Timestamp: " << timestampStream.str() << std::endl;
-
                 outFile.close();
             }
             catch (const std::exception& e) {
@@ -94,9 +96,52 @@ void FlatMemoryAllocator::evictOldestProcess() {
             }
 
             backingStore[process->getPid()] = process;
-            deallocate(process);
 
-            break;
+            deallocate(process);
+        }
+    }
+    else {
+        for (auto& partition : memoryPartitions) {
+            if (!partition.isAllocatable && partition.process) {
+                auto process = partition.process;
+                if (!process) {
+                    std::cerr << "Error: Process is null during eviction.\n";
+                    continue;
+                }
+
+                auto now = std::chrono::system_clock::now();
+                auto time_t_now = std::chrono::system_clock::to_time_t(now);
+                std::tm tm_now;
+
+                if (localtime_s(&tm_now, &time_t_now) != 0) {
+                    std::cerr << "Error: Failed to get local time for eviction timestamp.\n";
+                    return;
+                }
+
+                std::ostringstream timestampStream;
+                timestampStream << std::put_time(&tm_now, "%Y-%m-%d %H:%M:%S");
+
+                std::string fileName = "process_" + std::to_string(process->getPid()) + ".txt";
+                std::filesystem::path filePath = backingStorePath / fileName;
+
+                try {
+                    std::ofstream outFile(filePath);
+                    outFile << "Process ID: " << process->getPid() << std::endl;
+                    outFile << "Memory Requirement: " << process->getMemoryRequirement() << " bytes" << std::endl;
+                    outFile << "Eviction Timestamp: " << timestampStream.str() << std::endl;
+                    outFile.close();
+                }
+                catch (const std::exception& e) {
+                    std::cerr << "Error writing to backing store file: " << e.what() << std::endl;
+                }
+
+                // Store the evicted process in the backing store
+                backingStore[process->getPid()] = process;
+
+                // Deallocate the memory used by the process
+                deallocate(process);
+                break;
+            }
         }
     }
 }
@@ -105,14 +150,26 @@ void FlatMemoryAllocator::evictOldestProcess() {
 void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     size_t size = process->getMemoryRequirement();
 
-    if (size < minMemoryPerProc || size > maxMemoryPerProc || size == 0) {
+    if (size > memoryPerFrame || size < minMemoryPerProc) {
         throw std::bad_alloc();
     }
 
-    // Evict processes if memory is full before allocating a new process
-    while (allocatedSize + size > maximumSize) {
-        std::cout << "Eviction triggered. Allocated Size: " << allocatedSize << ", Required Size: " << size << std::endl;
-        evictOldestProcess();
+    if (maximumSize == memoryPerFrame) {
+        if (!allocationMap[0]) { 
+            allocationMap[0] = true;
+            allocatedSize = size;
+
+            void* allocatedMemory = memory.data();
+            process->setMemoryLocation(allocatedMemory);
+
+            allocatedMemoryMap[reinterpret_cast<size_t>(allocatedMemory)] = size;
+            memoryPartitions[0] = { 0, false, process };
+
+            return allocatedMemory;
+        }
+        else {
+            evictOldestProcess();
+        }
     }
 
     for (size_t i = 0; i <= maximumSize - size; i += memoryPerFrame) {
@@ -129,8 +186,10 @@ void* FlatMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
             return allocatedMemory;
         }
     }
+
     throw std::bad_alloc();
 }
+
 
 
 void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
@@ -147,7 +206,6 @@ void FlatMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
         allocatedMemoryMap.erase(it);
         process->setMemoryLocation(nullptr);
 
-        // Mark the memory partition as allocatable again
         for (auto& partition : memoryPartitions) {
             if (partition.slotNumber == startIndex / memoryPerFrame && partition.process == process) {
                 partition.isAllocatable = true;
@@ -167,6 +225,10 @@ void FlatMemoryAllocator::initializeMemory() {
 }
 
 bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size) const {
+    if (maximumSize == memoryPerFrame) {
+        return !allocationMap[0]; 
+    }
+
     if (index % memoryPerFrame != 0 || index + size > allocationMap.size()) return false;
     for (size_t i = index; i < index + size; ++i) {
         if (allocationMap[i]) return false;

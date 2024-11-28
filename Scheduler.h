@@ -123,7 +123,7 @@ public:
         else {
             std::cout << "Unknown scheduling algorithm specified." << std::endl;
         }
-        if (maxOverallMem != memPerFrame) {
+        if (maxOverallMem == memPerFrame) {
             std::cout << "\n\nUsing FlatMemory Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);

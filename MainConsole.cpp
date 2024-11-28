@@ -183,7 +183,9 @@ void MainConsole::process() {
                 isInitialized = true;
 
                 // Determine if its FlatMemory or Paging
+                std::cout << "maxOverallMem: " << this->config.maxOverallMem << ", memPerFrame: " << this->config.memPerFrame << std::endl;
                 isPaging = (this->config.maxOverallMem != this->config.memPerFrame);
+                std::cout << "isPaging: " << (isPaging ? "true" : "false") << std::endl;
             }
             });
 
