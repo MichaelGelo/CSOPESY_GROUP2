@@ -608,8 +608,8 @@ void MainConsole::vmstat() const {
     std::cout << "Idle CPU Ticks: " << idleCpuTicks << std::endl;
     std::cout << "Active CPU Ticks: " << activeCpuTicks << std::endl;
     std::cout << "Total CPU Ticks: " << totalCpuTicks << std::endl;
-    //std::cout << "Num Paged In: " << paging->getPageIn()<< std::endl;
-    //std::cout << "Num Paged Out: " << paging->getPageOut()  << RESET << std::endl;
+    std::cout << "Num Paged In: " << paging->getPageIn()<< std::endl;
+    std::cout << "Num Paged Out: " << paging->getPageOut()  << RESET << std::endl;
     std::cout << "--------------------------------\n";
 }
 

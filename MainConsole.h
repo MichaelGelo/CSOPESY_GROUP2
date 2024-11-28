@@ -11,7 +11,7 @@
 #include "AttachedProcess.h"
 #include "Scheduler.h"
 #include "CPUCycle.h"
-//#include "PagingMemoryAllocator.h"
+#include "PagingMemoryAllocator.h"
 class MainConsole : public AConsole {
 
 private:

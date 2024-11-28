@@ -123,16 +123,16 @@ public:
         else {
             std::cout << "Unknown scheduling algorithm specified." << std::endl;
         }
-        if (maxOverallMem == memPerFrame) {
-            std::cout << "Using FlatMemoryAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
+        if (maxOverallMem != memPerFrame) {
+            std::cout << "\n\nUsing FlatMemory Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         }
         else {
-            std::cout << "Using PagingAllocator." << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "   " << std::endl;
+            std::cout << "\n\nUsing Paging Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             //memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
-            memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+            memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         }
         
     }

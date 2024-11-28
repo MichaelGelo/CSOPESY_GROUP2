@@ -1,22 +1,24 @@
 #include "PagingMemoryAllocator.h"
 #include <iostream>
 #include <stdexcept>
-#include <fstream>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
+#include <filesystem>
 #include <chrono>
 #include <iomanip>
-#include <mutex>
 
-PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSize, Scheduler& scheduler)
-    : totalMemory(totalMemory), frameSize(frameSize), scheduler(scheduler),
-    totalFrames(totalMemory / frameSize), allocatedFrames(0),
+PagingMemoryAllocator::PagingMemoryAllocator(size_t maximumSize, size_t memoryPerFrame, size_t minMemoryPerProc, size_t maxMemoryPerProc)
+    : maximumSize(maximumSize),
+    allocatedSize(0),
+    memoryPerFrame(memoryPerFrame),
+    minMemoryPerProc(minMemoryPerProc),
+    maxMemoryPerProc(maxMemoryPerProc),
+    allocationMap(maximumSize, false),
     backingStorePath("./backingStore") {
+    memory.resize(maximumSize);
 
-    // Initialize frame table
     initializeFrames();
-
-    // Prepare backing store
     try {
         if (std::filesystem::exists(backingStorePath)) {
             for (const auto& entry : std::filesystem::directory_iterator(backingStorePath)) {
@@ -28,9 +30,19 @@ PagingMemoryAllocator::PagingMemoryAllocator(size_t totalMemory, size_t frameSiz
         }
     }
     catch (const std::filesystem::filesystem_error& e) {
-        std::cerr << "Error creating or cleaning backing store: " << e.what() << std::endl;
+        std::cout << "Error creating or cleaning backing store directory: " << e.what() << std::endl;
         throw;
     }
+}
+
+
+
+void PagingMemoryAllocator::printConfiguration() const {
+    std::cout << "\nFlat Memory Allocator Configuration:" << std::endl;
+    std::cout << "Maximum Size: " << maximumSize << " bytes" << std::endl;
+    std::cout << "Allocated Size: " << allocatedSize << " bytes" << std::endl;
+    std::cout << "Memory per Frame: " << memoryPerFrame << " bytes" << std::endl;
+    std::cout << "Minimum Memory per Process: " << minMemoryPerProc << " bytes\n" << std::endl;
 }
 
 PagingMemoryAllocator::~PagingMemoryAllocator() {
@@ -40,27 +52,40 @@ PagingMemoryAllocator::~PagingMemoryAllocator() {
 
 void PagingMemoryAllocator::initializeFrames() {
     for (size_t i = 0; i < totalFrames; ++i) {
-        // Create Frame with frameNum, memPerFrame, and initially allocatable
+        // Use Frame constructor from frame.h
         frameTable.push_back(Frame(i, frameSize, true));
         freeFrames.push_back(i); // All frames start as free.
     }
 }
 
-void PagingMemoryAllocator::printConfiguration() const {
-    std::cout << "\nPaging Memory Allocator Configuration:" << std::endl;
-    std::cout << "Total Memory: " << totalMemory << " bytes" << std::endl;
-    std::cout << "Frame Size: " << frameSize << " bytes" << std::endl;
-    std::cout << "Total Frames: " << totalFrames << std::endl;
-    std::cout << "Allocated Frames: " << allocatedFrames << std::endl;
-    std::cout << "Free Frames: " << freeFrames.size() << "\n" << std::endl;
-}
-
 void PagingMemoryAllocator::visualMemory() const {
-    std::cout << "Frame Allocation Map: ";
-    for (const auto& frame : frameTable) {
-        std::cout << (frame.isAllocatable() ? "0" : "1");
+    std::cout << "Allocation Map: ";
+    for (bool occupied : allocationMap) {
+        std::cout << (occupied ? "1" : "0");
     }
     std::cout << std::endl;
+}
+
+void PagingMemoryAllocator::evictOldestProcess() {
+    for (auto& frame : frameTable) {
+        if (!frame.isAllocatable() && frame.getCurrentPage()) {
+            std::shared_ptr<Page> page = frame.getCurrentPage();
+            
+            std::ofstream outFile(backingStorePath / ("process_" + std::to_string(page->getPid()) + ".txt"));
+
+            outFile << "Process ID: " << page->getPid() << "\n";
+            outFile << "Page Name: " << page->getName() << "\n";
+            
+            // You'll need to find the process with this PID and deallocate
+            // This might require additional logic depending on how you track processes
+            // For example:
+            // std::shared_ptr<AttachedProcess> process = findProcessByPid(page->getPid());
+            // if (process) {
+            //     deallocate(process);
+            //     break;
+            // }
+        }
+    }
 }
 
 size_t PagingMemoryAllocator::getPageIn() {
@@ -94,12 +119,10 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
         // Update frame table
         frameTable[frameIndex + i].setIsAllocatable(false);
 
-        // Create a Page for this frame
-        auto page = std::make_shared<Page>(
-            "Page_" + std::to_string(i),
-            process->getPid(),
-            frameSize
-        );
+        // Create a new Page for the process
+        // Use process name or generate a unique page name
+        std::string pageName = "Page_" + std::to_string(process->getPid()) + "_" + std::to_string(i);
+        auto page = std::make_shared<Page>(pageName, process->getPid(), frameSize);
         frameTable[frameIndex + i].setCurrentPage(page);
     }
 
@@ -116,6 +139,7 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
 
     return processMemory;
 }
+
 
 void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
     void* memoryLocation = process->getMemoryLocation();
@@ -149,25 +173,67 @@ void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process)
     process->setMemoryLocation(nullptr);
 }
 
-void PagingMemoryAllocator::evictOldestProcess() {
-    for (auto& frame : frameTable) {
-        if (!frame.isAllocatable() && frame.getCurrentPage()) {
-            std::shared_ptr<Page> page = frame.getCurrentPage();
-
-            // Construct the output file path
-            std::filesystem::path filePath = backingStorePath / ("process_" + std::to_string(page->getPid()) + ".txt");
-
-            // Use std::ofstream constructor that takes a path
-            std::ofstream outFile(filePath);
-
-            outFile << "Process ID: " << page->getPid() << "\n";
-            outFile << "Page Name: " << page->getName() << "\n";
-            outFile << "Memory Per Page: " << page->getMemPerPage() << " bytes\n";
-
-            outFile.close();
-            break;
-        }
+void PagingMemoryAllocator::initializeMemory() {
+    std::fill(allocationMap.begin(), allocationMap.end(), false);
+    memoryPartitions.clear();
+    for (size_t i = 0; i < maximumSize; i += memoryPerFrame) {
+        memoryPartitions.push_back({ static_cast<uint32_t>(i / memoryPerFrame), true, nullptr });
     }
+}
+
+bool PagingMemoryAllocator::canAllocateAt(size_t index, size_t size) const {
+    if (index % memoryPerFrame != 0 || index + size > allocationMap.size()) return false;
+    for (size_t i = index; i < index + size; ++i) {
+        if (allocationMap[i]) return false;
+    }
+    return true;
+}
+
+void PagingMemoryAllocator::deallocateAt(size_t index) {
+    size_t size = 0;
+    while (index + size < allocationMap.size() && allocationMap[index + size]) {
+        allocationMap[index + size] = false;
+        ++size;
+    }
+    allocatedSize -= size;
+}
+
+size_t PagingMemoryAllocator::getAllocatedSize() const {
+    return allocatedSize;
+}
+
+size_t PagingMemoryAllocator::getFreeMemory() const {
+    return static_cast<int>(maximumSize - allocatedSize);
+}
+
+std::vector<IMemoryAllocator::MemoryPartition> PagingMemoryAllocator::getMemoryPartitions() const {
+    return memoryPartitions;
+}
+
+size_t PagingMemoryAllocator::getMaximumSize() const {
+    return maximumSize;
+}
+
+size_t PagingMemoryAllocator::getMemoryPerFrame() const {
+    return memoryPerFrame;
+}
+
+IMemoryAllocator::MemoryPartition PagingMemoryAllocator::getPartitionAt(size_t index) const {
+    if (index >= 0 && index < static_cast<int>(memoryPartitions.size())) {
+        return memoryPartitions[index];
+    }
+    return IMemoryAllocator::MemoryPartition{};
+}
+
+size_t PagingMemoryAllocator::getMinimumAllocatableSize() const {
+    return static_cast<int>(minMemoryPerProc);
+}
+
+bool PagingMemoryAllocator::isAllocated(size_t index) const {
+    if (index >= allocationMap.size()) {
+        throw std::out_of_range("Index out of range");
+    }
+    return allocationMap[index];
 }
 
 int PagingMemoryAllocator::getTotalFrames() const {
