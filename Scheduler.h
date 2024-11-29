@@ -84,15 +84,7 @@ public:
         else {
             numFrames = 0; 
         }
-
-        for (int i = 0; i < numFrames; ++i) {
-            frameQueue.emplace(std::make_shared<Frame>(i, memPerFrame, false));
-
-        }
-
-        std::lock_guard<std::mutex> lock(frameQueueMutex); // Ensure thread-safe access to the frameQueue
-        std::queue<std::shared_ptr<Frame>> tempQueue = frameQueue; // Make a copy to avoid modifying the original queue
-
+        /*
         std::cout << "Frames in queue:\n";
         while (!tempQueue.empty()) {
             auto frame = tempQueue.front();
@@ -101,6 +93,7 @@ public:
                 << ", Memory Per Frame: " << frame->getMemPerFrame()
                 << std::endl;
         }
+        */
 
         memoryAllocator = new FlatMemoryAllocator (maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         //memoryAllocator->printConfiguration(); // DEBUGGING PURPOSES, REMOVE.

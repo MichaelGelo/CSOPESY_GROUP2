@@ -54,7 +54,7 @@ void PagingMemoryAllocator::initializeFrames() {
     for (size_t i = 0; i < totalFrames; ++i) {
         // Use Frame constructor from frame.h
         frameTable.push_back(Frame(i, frameSize, true));
-        freeFrames.push_back(i); // All frames start as free.
+        freeQueue.push_back(i); // All frames start as free.
     }
 }
 
@@ -89,28 +89,26 @@ void PagingMemoryAllocator::evictOldestProcess() {
 }
 
 void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
-    // Calculate number of frames needed
+    // Calculate the number of frames needed
     size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame;
-
     // Check if enough free frames are available
-    if (requiredFrames > freeFrames.size()) {
+    if (requiredFrames > freeQueue.size()) {
         std::cerr << "Allocation failed: Not enough free frames" << std::endl;
         throw std::bad_alloc(); // Not enough free frames
     }
 
-    // Get the first available frame index
-    size_t frameIndex = freeFrames.back();
+    // Get the first available frame index from freeQueue
+    size_t frameIndex = freeQueue.back();
 
     // Allocate frames for the process
     for (size_t i = 0; i < requiredFrames; ++i) {
-        // Remove frame from free list
-        freeFrames.pop_back();
-
+        // Remove frame from freeQueue
+        freeQueue.pop_back();
+            
         // Update frame table
         frameTable[frameIndex + i].setIsAllocatable(false);
 
         // Create a new Page for the process
-        // Use process name or generate a unique page name
         std::string pageName = "Page_" + std::to_string(process->getPid()) + "_" + std::to_string(i);
         auto page = std::make_shared<Page>(pageName, process->getPid(), memoryPerFrame);
         frameTable[frameIndex + i].setCurrentPage(page);
@@ -118,7 +116,6 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
 
     // Update allocation counters
     allocatedFrames += requiredFrames;
-
 
     // Calculate memory location and set for the process
     void* processMemory = reinterpret_cast<void*>(frameIndex * memoryPerFrame);

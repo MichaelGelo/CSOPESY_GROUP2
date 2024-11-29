@@ -71,6 +71,8 @@ private:
     size_t nPagedIn;
     size_t nPagedOut;
 
+    std::vector<size_t> freeQueue;
+
 };
 
 #endif // FLATMALLOCATOR_H
