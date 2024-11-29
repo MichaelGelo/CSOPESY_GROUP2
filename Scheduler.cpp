@@ -76,13 +76,13 @@ bool Scheduler::attachProcessToMemory(std::shared_ptr<AttachedProcess>& process)
                 return true;
             }
             else {
-                std::cerr << "Error: Memory allocation failed, received nullptr." << std::endl;
-                logMessage("Memory allocation failed, received nullptr.");
+                //std::cerr << "Error: Memory allocation failed, received nullptr." << std::endl;
+                //logMessage("Memory allocation failed, received nullptr.");
             }
         }
         catch (const std::bad_alloc&) {
-            std::cerr << "Memory allocation failed for process " << process->getPid() << std::endl;
-            logMessage("Memory allocation failed for process " + std::to_string(process->getPid()));
+            //std::cerr << "Memory allocation failed for process " << process->getPid() << std::endl;
+            //logMessage("Memory allocation failed for process " + std::to_string(process->getPid()));
         }
     }
 
@@ -275,7 +275,7 @@ void Scheduler::generateMemoryReport(int currentQuantumCycle) {
             }
         }
         catch (const std::exception& e) {
-            std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
+            //std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
         }
         firstRun = false;
     }

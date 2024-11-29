@@ -97,7 +97,7 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
     size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame; //should just be page
     // Check if enough free frames are available
     if (requiredFrames > freeQueue.size()) {
-        std::cerr << "Allocation failed: Not enough free frames" << std::endl;
+        //std::cerr << "Allocation failed: Not enough free frames" << std::endl;
         throw std::bad_alloc(); // Not enough free frames
     }
 

@@ -100,9 +100,9 @@ public:
         while (!tempQueue.empty()) {
             auto frame = tempQueue.front();
             tempQueue.pop();
-            std::cout << "Frame Number: " << frame->getFrameNum()
+            /*std::cout << "Frame Number: " << frame->getFrameNum()
                 << ", Memory Per Frame: " << frame->getMemPerFrame()
-                << std::endl;
+                << std::endl;*/
         }
 
         memoryAllocator = new FlatMemoryAllocator (maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
@@ -127,12 +127,12 @@ public:
             std::cout << "Unknown scheduling algorithm specified." << std::endl;
         }
         if (maxOverallMem == memPerFrame) {
-            std::cout << "\n\nUsing FlatMemory Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
+            std::cout << "\nUsing FlatMemory Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             memoryAllocator = new FlatMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         }
         else {
-            std::cout << "\n\nUsing Paging Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
+            std::cout << "\nUsing Paging Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             //memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
             memoryAllocator = new AllocatorPaging(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);

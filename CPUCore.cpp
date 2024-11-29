@@ -6,7 +6,7 @@
 
 void CPUCore::assignProcess(std::shared_ptr<AttachedProcess> process) {
     if (!scheduler->attachProcessToMemory(process)) {
-        std::cout << "Not enough memory to attach process " << process->getPid() << " to memory." << std::endl;
+        //std::cout << "Not enough memory to attach process " << process->getPid() << " to memory." << std::endl;
         return;
     }
     else {

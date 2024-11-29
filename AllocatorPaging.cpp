@@ -101,7 +101,7 @@ void* AllocatorPaging::allocate(std::shared_ptr<AttachedProcess> process) {
 
     // Check if enough frames are available
     if (requiredFrames > freeQueue.size()) {
-        std::cerr << "Allocation failed: Not enough free frames" << std::endl;
+        //std::cerr << "Allocation failed: Not enough free frames" << std::endl;
         throw std::bad_alloc();
     }
 
@@ -109,7 +109,7 @@ void* AllocatorPaging::allocate(std::shared_ptr<AttachedProcess> process) {
     std::vector<size_t> allocatedFrames;
     for (size_t i = 0; i < requiredFrames; ++i) {
         if (freeQueue.empty()) {
-            std::cerr << "Allocation failed: Free queue is empty" << std::endl;
+            //std::cerr << "Allocation failed: Free queue is empty" << std::endl;
             throw std::bad_alloc();
         }
 
@@ -117,7 +117,7 @@ void* AllocatorPaging::allocate(std::shared_ptr<AttachedProcess> process) {
         freeQueue.pop_back();
 
         if (frameIndex >= frameTable.size()) {
-            std::cerr << "Allocation failed: Frame index out of bounds" << std::endl;
+            //std::cerr << "Allocation failed: Frame index out of bounds" << std::endl;
             throw std::runtime_error("Frame index out of bounds.");
         }
 
@@ -261,7 +261,7 @@ size_t AllocatorPaging::allocateFrames(size_t numFrame, std::shared_ptr<Process>
 
     // Check if there are enough frames in the queue
     if (frameQueue.size() < numFrame) {
-        std::cerr << "Not enough frames available!" << std::endl;
+        //std::cerr << "Not enough frames available!" << std::endl;
         return -1;  // Return an invalid index if not enough frames are available
     }
 
