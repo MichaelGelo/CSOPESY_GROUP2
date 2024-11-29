@@ -72,7 +72,7 @@ bool Scheduler::attachProcessToMemory(std::shared_ptr<AttachedProcess>& process)
                     " at address: " + std::to_string(reinterpret_cast<uintptr_t>(process->getMemoryLocation())) + "\n");
 
 
-               // logMessage("Current Memory Layout:\n" + getMemoryPrintout());
+                // logMessage("Current Memory Layout:\n" + getMemoryPrintout());
                 return true;
             }
             else {
@@ -126,7 +126,7 @@ void Scheduler::stopAllCores() {
 
 // Destructor to clean up threads
 Scheduler::~Scheduler() {
-    schedulerStop();  
+    schedulerStop();
 
     for (auto& thread : coreThreads) {
         if (thread.joinable()) {
@@ -134,7 +134,7 @@ Scheduler::~Scheduler() {
         }
     }
 
-    cpuCycle.stopClock();  
+    cpuCycle.stopClock();
 }
 
 // Add process to the ready queue
@@ -161,22 +161,9 @@ void Scheduler::fcfs() {
 // Listen for cycle updates and assign processes to cores
 void Scheduler::listenForCycle() {
     //int currentQuantumCycle = 1;
-
     while (schedulerStatus) {
         //generateMemoryReport(currentQuantumCycle);
         //currentQuantumCycle++;
-        {
-            bool anyCoreBusy = false;
-            for (const auto& core : cores) {
-                if (core && core->getIsBusy()) {
-                    anyCoreBusy = true;
-                    break; // Exit loop early if a busy core is found
-                }
-            }
-            if (anyCoreBusy) {
-                cpuCycle.incrementActiveCycle();
-            }
-        }
 
         std::unique_lock<std::mutex> lock(cpuCycle.getMutex());
         cpuCycle.getConditionVariable().wait(lock, [this] {
@@ -229,20 +216,6 @@ void Scheduler::rr() {
 void Scheduler::listenForCycleRR() {
     //int currentQuantumCycle = 1;
     while (schedulerStatus) {
-
-        {
-            bool anyCoreBusy = false;
-            for (const auto& core : cores) {
-                if (core && core->getIsBusy()) {
-                    anyCoreBusy = true;
-                    break; // Exit loop early if a busy core is found
-                }
-            }
-            if (anyCoreBusy) {
-                cpuCycle.incrementActiveCycle();
-            }
-        }
-
         std::unique_lock<std::mutex> lock(rqMutex);
 
         //generateMemoryReport(currentQuantumCycle);
@@ -256,8 +229,8 @@ void Scheduler::listenForCycleRR() {
 
         for (auto& core : cores) {
             if (!core->getIsBusy() && !rq.empty()) {
-                
-                
+
+
                 auto attachedProcess = std::dynamic_pointer_cast<AttachedProcess>(rq.front());
                 rq.pop();
 
@@ -302,7 +275,7 @@ void Scheduler::generateMemoryReport(int currentQuantumCycle) {
             }
         }
         catch (const std::exception& e) {
-            //std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
+            std::cerr << "Error deleting directory contents: " << e.what() << std::endl;
         }
         firstRun = false;
     }
@@ -395,13 +368,14 @@ std::string Scheduler::getMemoryPrintout() {
 
             output << endAddress << "\n";
             output << "P" << partition.process->getPid() << "\n";
-            output << startAddress << "\n\n";
+            output << startAddress << "\n";
         }
     }
 
     output << "----start---- = 0\n";
     return output.str();
 }
+
 
 void Scheduler::vmstat(const std::vector<std::shared_ptr<AttachedProcess>>& processes, const CPUCycle& cpuCycle, int maxOverallMem) const {
     float memUsed = 0;
