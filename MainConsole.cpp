@@ -85,19 +85,20 @@ void MainConsole::createProcess(std::string processName) {
     }
 
     std::uniform_int_distribution<> memDis(0, validMemorySizes.size() - 1);
-    int memoryRequirement;
 
-    // Ensure memoryRequirement is not less than memPerFrame
-    if (isPaging == true) {
-        do {
-            memoryRequirement = validMemorySizes[memDis(gen)];
-        } while (memoryRequirement < memPerFrame);
-    }
-    else {
-        do {
-            memoryRequirement = validMemorySizes[memDis(gen)];
-        } while (memoryRequirement > memPerFrame);
-    }
+    int memoryRequirement = validMemorySizes[memDis(gen)];
+
+    //// Ensure memoryRequirement is not less than memPerFrame
+    //if (isPaging == true) {
+    //    do {
+    //        memoryRequirement = validMemorySizes[memDis(gen)];
+    //    } while (memoryRequirement < memPerFrame);
+    //}
+    //else {
+    //    do {
+    //        memoryRequirement = validMemorySizes[memDis(gen)];
+    //    } while (memoryRequirement > memPerFrame);
+    //}
     
 
     auto newScreen = std::make_shared<ScreenConsole>(
