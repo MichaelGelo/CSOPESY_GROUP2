@@ -88,9 +88,17 @@ void MainConsole::createProcess(std::string processName) {
     int memoryRequirement;
 
     // Ensure memoryRequirement is not less than memPerFrame
-    do {
-        memoryRequirement = validMemorySizes[memDis(gen)];
-    } while (memoryRequirement < memPerFrame);
+    if (isPaging == true) {
+        do {
+            memoryRequirement = validMemorySizes[memDis(gen)];
+        } while (memoryRequirement < memPerFrame);
+    }
+    else {
+        do {
+            memoryRequirement = validMemorySizes[memDis(gen)];
+        } while (memoryRequirement > memPerFrame);
+    }
+    
 
     auto newScreen = std::make_shared<ScreenConsole>(
         processName,
