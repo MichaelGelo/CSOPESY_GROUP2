@@ -50,6 +50,8 @@ PagingMemoryAllocator::~PagingMemoryAllocator() {
     freeFrames.clear();
 }
 
+//frames data still not gotten here
+// same lang ung frame table sa freeequeue ata
 void PagingMemoryAllocator::initializeFrames() {
     for (size_t i = 0; i < totalFrames; ++i) {
         // Use Frame constructor from frame.h
@@ -66,6 +68,8 @@ void PagingMemoryAllocator::visualMemory() const {
     std::cout << std::endl;
 }
 
+
+//wala pa si backing store, copypaste backing store in flatmemory
 void PagingMemoryAllocator::evictOldestProcess() {
     for (auto& frame : frameTable) {
         if (!frame.isAllocatable() && frame.getCurrentPage()) {
@@ -89,8 +93,8 @@ void PagingMemoryAllocator::evictOldestProcess() {
 }
 
 void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
-    // Calculate the number of frames needed
-    size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame;
+    // Change this to just use P of the process
+    size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame; //should just be page
     // Check if enough free frames are available
     if (requiredFrames > freeQueue.size()) {
         std::cerr << "Allocation failed: Not enough free frames" << std::endl;
@@ -125,7 +129,7 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
     return processMemory;
 }
 
-
+// waka pa ung magic
 void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process) {
     void* memoryLocation = process->getMemoryLocation();
     if (memoryLocation == nullptr) {
@@ -165,6 +169,7 @@ void PagingMemoryAllocator::initializeMemory() {
     }
 }
 
+//idk if used
 bool PagingMemoryAllocator::canAllocateAt(size_t index, size_t size) const {
     if (index % memoryPerFrame != 0 || index + size > allocationMap.size()) return false;
     for (size_t i = index; i < index + size; ++i) {
