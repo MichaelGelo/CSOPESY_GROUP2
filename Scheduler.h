@@ -3,6 +3,7 @@
 #include "ConsoleManager.h"
 #include "FlatMemoryAllocator.h"
 #include "PagingMemoryAllocator.h"
+#include "AllocatorPaging.h"
 #include "AttachedProcess.h"
 #include "CPUCycle.h"
 #include "CPUCore.h"
@@ -49,8 +50,7 @@ private:
     std::condition_variable rqCondition;          // Condition variable for ready queue
     IMemoryAllocator* memoryAllocator;
 
-    std::queue<std::shared_ptr<Frame>> frameQueue;
-    std::mutex frameQueueMutex;
+    
 
     // Private helper methods
     void initializeCores();                       // Initializes CPU cores and threads
@@ -77,6 +77,9 @@ public:
         batchProcessFreq(batchProcessFreq), minInstructions(minIns), maxInstructions(maxIns),
         delayPerExec(delayExec), maxOverallMem(maxOverallMem), memPerFrame(memPerFrame),
         minMemPerProc(minMemPerProc), maxMemPerProc(maxMemPerProc) {
+
+        std::queue<std::shared_ptr<Frame>> frameQueue;
+        std::mutex frameQueueMutex;
 
         if (memPerFrame > 0) {
             numFrames = maxOverallMem / memPerFrame;
@@ -132,7 +135,7 @@ public:
             std::cout << "\n\nUsing Paging Allocator.   " << "maxOverallMem: " << maxOverallMem << "   " << "memPerFrame: " << memPerFrame << "\n\n" << std::endl;
 
             //memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
-            memoryAllocator = new PagingMemoryAllocator(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
+            memoryAllocator = new AllocatorPaging(maxOverallMem, memPerFrame, minMemPerProc, maxMemPerProc);
         }
         
     }
@@ -155,5 +158,6 @@ public:
 
     void generateMemoryReport(int currentQuantumCycle);
     void vmstat(const std::vector<std::shared_ptr<AttachedProcess>>& processes, const CPUCycle& cpuCycle, int maxOverallMem) const;
+
 
 };

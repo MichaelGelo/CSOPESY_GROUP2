@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AConsole.cpp" />
+    <ClCompile Include="AllocatorPaging.cpp" />
     <ClCompile Include="ConsoleManager.cpp" />
     <ClCompile Include="CPUCore.cpp" />
     <ClCompile Include="CPUCycle.cpp" />
@@ -147,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AConsole.h" />
+    <ClInclude Include="AllocatorPaging.h" />
     <ClInclude Include="AttachedProcess.h" />
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="CPUCore.h" />

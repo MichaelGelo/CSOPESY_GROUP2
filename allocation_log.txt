@@ -64080,3 +64080,9 @@ Process 1 is already attached to memory.
 Process 1 is already attached to memory.
 Process 1 is already attached to memory.
 Process 1 is already attached to memory.
+Attempting to attach process 1 with memory requirement: 256 bytes
+Memory allocation failed for process 1
+Insufficient memory for process 1
+Attempting to attach process 1 with memory requirement: 256 bytes
+Memory allocation failed for process 1
+Insufficient memory for process 1
