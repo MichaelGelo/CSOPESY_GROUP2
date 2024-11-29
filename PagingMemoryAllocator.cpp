@@ -88,16 +88,6 @@ void PagingMemoryAllocator::evictOldestProcess() {
     }
 }
 
-size_t PagingMemoryAllocator::getPageIn() {
-    std::cerr << "Getting PageIn: " << nPagedIn << std::endl;
-    return nPagedIn;
-}
-
-size_t PagingMemoryAllocator::getPageOut() {
-    std::cerr << "Getting PageOut: " << nPagedOut << std::endl;
-    return nPagedOut;
-}
-
 void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     // Calculate number of frames needed
     size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame;
@@ -129,14 +119,12 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
     // Update allocation counters
     allocatedFrames += requiredFrames;
 
-    // Increment page-in counter
-    nPagedIn += requiredFrames;
-    std::cerr << "Allocated " << requiredFrames << " frames. Total PagedIn: " << nPagedIn << std::endl;
 
     // Calculate memory location and set for the process
     void* processMemory = reinterpret_cast<void*>(frameIndex * memoryPerFrame);
     process->setMemoryLocation(processMemory);
 
+    nPagedIn++;
     return processMemory;
 }
 
@@ -165,12 +153,11 @@ void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process)
     // Update allocation counters
     allocatedFrames -= requiredFrames;
 
-    // Increment page-out counter
-    nPagedOut += requiredFrames;
-    std::cerr << "Deallocated " << requiredFrames << " frames. Total PagedOut: " << nPagedOut << std::endl;
 
     // Clear process memory location
     process->setMemoryLocation(nullptr);
+
+    nPagedOut++;
 }
 
 void PagingMemoryAllocator::initializeMemory() {
@@ -246,4 +233,13 @@ int PagingMemoryAllocator::getFreeFrames() const {
 
 std::vector<Frame> PagingMemoryAllocator::getFrameTable() const {
     return frameTable;
+}
+
+size_t PagingMemoryAllocator::getPageIn() {
+    std::lock_guard<std::mutex> lock(memoryMutex);
+    return nPagedIn;
+}
+size_t PagingMemoryAllocator::getPageOut() {
+    std::lock_guard<std::mutex> lock(memoryMutex);
+    return nPagedOut;
 }

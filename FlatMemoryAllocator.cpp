@@ -282,3 +282,10 @@ bool FlatMemoryAllocator::isAllocated(size_t index) const {
     }
     return allocationMap[index];
 }
+
+size_t FlatMemoryAllocator::getPageIn() {
+    return 0;
+}
+size_t FlatMemoryAllocator::getPageOut() {
+    return 0;
+}

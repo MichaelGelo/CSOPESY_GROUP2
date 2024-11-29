@@ -27,6 +27,8 @@ public:
     virtual bool isAllocated(size_t index) const = 0;
     virtual MemoryPartition getPartitionAt(size_t index) const = 0;
     virtual void evictOldestProcess() = 0;
+    virtual size_t getPageIn() = 0;
+    virtual size_t getPageOut() = 0;
 };
 
 #endif // IMEMORYALLOCATOR_H

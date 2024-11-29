@@ -11,11 +11,9 @@
 #include "AttachedProcess.h"
 #include "Scheduler.h"
 #include "CPUCycle.h"
-#include "PagingMemoryAllocator.h"
 class MainConsole : public AConsole {
 
 private:
-    PagingMemoryAllocator* paging;
     void captureAndStoreOutput(std::function<void()> func);
     std::vector<std::string> commandHist;
 
@@ -24,7 +22,7 @@ private:
     void clear();
     void saveProcessReport() const;
     void processSMI() const;
-    void vmstat() const;
+    
     std::map<std::string, AttachedProcess*> processQueue;
 
     std::vector<std::thread> cpuThreads;

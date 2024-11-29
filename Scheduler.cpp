@@ -15,6 +15,7 @@
 #include <unordered_set> 
 #include <filesystem>
 #include <random>
+#include "Design.h"
 
 // Display scheduler configuration
 void Scheduler::displayConfiguration() {
@@ -400,4 +401,30 @@ std::string Scheduler::getMemoryPrintout() {
 
     output << "----start---- = 0\n";
     return output.str();
+}
+
+void Scheduler::vmstat(const std::vector<std::shared_ptr<AttachedProcess>>& processes, const CPUCycle& cpuCycle, int maxOverallMem) const {
+    float memUsed = 0;
+
+    for (const auto& process : processes) {
+        Process::ProcessState state = process->getState();
+        if (state == Process::RUNNING) {
+            memUsed += process->getMemoryRequirement();
+        }
+    }
+
+    int totalCpuTicks = cpuCycle.getCurrentCycle();
+    int activeCpuTicks = cpuCycle.getActiveCycleCount();
+    int idleCpuTicks = totalCpuTicks - activeCpuTicks;
+    std::cout << "--------------------------------\n";
+    std::cout << ORANGE << "VMSTAT\n" << RESET;
+    std::cout << GREEN << "\nTotal Memory: " << maxOverallMem << std::endl;
+    std::cout << "Used Memory: " << memUsed << std::endl;
+    std::cout << "Free Memory: " << maxOverallMem - memUsed << std::endl;
+    std::cout << "Idle CPU Ticks: " << idleCpuTicks << std::endl;
+    std::cout << "Active CPU Ticks: " << activeCpuTicks << std::endl;
+    std::cout << "Total CPU Ticks: " << totalCpuTicks << std::endl;
+    std::cout << "Num Paged In: " << memoryAllocator->getPageIn() << std::endl;
+    std::cout << "Num Paged Out: " << memoryAllocator->getPageOut() << RESET << std::endl;
+    std::cout << "--------------------------------\n";
 }

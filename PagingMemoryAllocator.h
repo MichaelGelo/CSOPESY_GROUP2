@@ -62,13 +62,14 @@ private:
     std::vector<Frame> frameTable; // Represents all frames in memory.
     void initializeFrames();
 
-    mutable std::mutex memoryMutex;
-    std::atomic<size_t> nPagedIn{ 0 };
-    std::atomic<size_t> nPagedOut{ 0 };
 
     int getTotalFrames() const;
     int getFreeFrames() const;
     std::vector<Frame> getFrameTable() const;
+
+    std::mutex memoryMutex;
+    size_t nPagedIn;
+    size_t nPagedOut;
 
 };
 

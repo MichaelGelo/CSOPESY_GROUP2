@@ -154,5 +154,6 @@ public:
     bool attachProcessToMemory(std::shared_ptr<AttachedProcess>& process);
 
     void generateMemoryReport(int currentQuantumCycle);
+    void vmstat(const std::vector<std::shared_ptr<AttachedProcess>>& processes, const CPUCycle& cpuCycle, int maxOverallMem) const;
 
 };

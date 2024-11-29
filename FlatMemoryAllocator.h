@@ -25,6 +25,8 @@ public:
     bool isAllocated(size_t index) const override;
     IMemoryAllocator::MemoryPartition getPartitionAt(size_t index) const override;
     void evictOldestProcess() override;
+    size_t getPageIn()override;
+    size_t getPageOut()override;
 
 private:
     std::vector<IMemoryAllocator::MemoryPartition> memoryPartitions;
