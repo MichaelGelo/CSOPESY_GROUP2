@@ -70,12 +70,12 @@ void PagingMemoryAllocator::evictOldestProcess() {
     for (auto& frame : frameTable) {
         if (!frame.isAllocatable() && frame.getCurrentPage()) {
             std::shared_ptr<Page> page = frame.getCurrentPage();
-            
+
             std::ofstream outFile(backingStorePath / ("process_" + std::to_string(page->getPid()) + ".txt"));
 
             outFile << "Process ID: " << page->getPid() << "\n";
             outFile << "Page Name: " << page->getName() << "\n";
-            
+
             // You'll need to find the process with this PID and deallocate
             // This might require additional logic depending on how you track processes
             // For example:
@@ -100,7 +100,7 @@ size_t PagingMemoryAllocator::getPageOut() {
 
 void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) {
     // Calculate number of frames needed
-    size_t requiredFrames = (process->getMemoryRequirement() + frameSize - 1) / frameSize;
+    size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame;
 
     // Check if enough free frames are available
     if (requiredFrames > freeFrames.size()) {
@@ -122,7 +122,7 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
         // Create a new Page for the process
         // Use process name or generate a unique page name
         std::string pageName = "Page_" + std::to_string(process->getPid()) + "_" + std::to_string(i);
-        auto page = std::make_shared<Page>(pageName, process->getPid(), frameSize);
+        auto page = std::make_shared<Page>(pageName, process->getPid(), memoryPerFrame);
         frameTable[frameIndex + i].setCurrentPage(page);
     }
 
@@ -134,7 +134,7 @@ void* PagingMemoryAllocator::allocate(std::shared_ptr<AttachedProcess> process) 
     std::cerr << "Allocated " << requiredFrames << " frames. Total PagedIn: " << nPagedIn << std::endl;
 
     // Calculate memory location and set for the process
-    void* processMemory = reinterpret_cast<void*>(frameIndex * frameSize);
+    void* processMemory = reinterpret_cast<void*>(frameIndex * memoryPerFrame);
     process->setMemoryLocation(processMemory);
 
     return processMemory;
@@ -149,8 +149,8 @@ void PagingMemoryAllocator::deallocate(std::shared_ptr<AttachedProcess> process)
     }
 
     // Calculate frame index and number of frames
-    size_t frameIndex = reinterpret_cast<size_t>(memoryLocation) / frameSize;
-    size_t requiredFrames = (process->getMemoryRequirement() + frameSize - 1) / frameSize;
+    size_t frameIndex = reinterpret_cast<size_t>(memoryLocation) / memoryPerFrame;
+    size_t requiredFrames = (process->getMemoryRequirement() + memoryPerFrame - 1) / memoryPerFrame;
 
     // Remove frames from frame map and mark as free
     for (size_t i = 0; i < requiredFrames; ++i) {
