@@ -363,7 +363,6 @@ void MainConsole::schedulerStop() {
 
 void MainConsole::runSchedulerTest() {
     int processCounter = 1;
-    const float MAXLOAD_THRESHOLD = 1;  // 75% CPU utilization threshold
 
     while (isSchedulerTestRunning && isCPURunning) {
         std::unique_lock<std::mutex> lock(cpuCycle.mtx);
@@ -382,9 +381,8 @@ void MainConsole::runSchedulerTest() {
         float currentLoad = static_cast<float>(runningProcesses) / config.numCpu;
 
         // Only create new process if under load threshold
-        if (currentCycle % config.batchProcessFreq == 0 &&
-            currentLoad < MAXLOAD_THRESHOLD) {
-
+        if (currentCycle % config.batchProcessFreq == 0) {
+            //std::string processName = "process" + std::to_string(currentCycle);
             std::string processName = "process" + std::to_string(processCounter) + "_" + std::to_string(currentCycle);
             while (ConsoleManager::getInstance()->screenExists(processName)) processName += "X";
             createProcess(processName);
